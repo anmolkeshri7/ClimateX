@@ -1,5 +1,4 @@
-
-<!DOCTYPE html>
+ <escape><!DOCTYPE html>
 <html lang="en">
 
 <head>
@@ -77,10 +76,78 @@
 
         </section>
 
+        <!-- Weather Card -->
+        <section class="weather-card" id="weatherCard">
+
+            <div class="weather-top">
+
+                <div class="weather-location">
+                    <p class="location-label">CURRENT WEATHER</p>
+                    <h2 id="cityName">Ranchi</h2>
+                    <p id="countryName">IN</p>
+                </div>
+
+                <img
+                    id="weatherIcon"
+                    class="weather-icon"
+                    src="https://openweathermap.org/img/wn/02d@2x.png"
+                    alt="Weather icon preview"
+                >
+
+            </div>
+
+            <!-- Main Temperature -->
+            <div class="temperature-section">
+                <span id="temperature">28</span><span class="degree">°C</span>
+            </div>
+
+            <p id="condition" class="condition">
+                Partly cloudy
+            </p>
+
+            <!-- Weather Details -->
+            <div class="weather-details">
+
+                <article class="detail">
+                    <div class="detail-symbol" aria-hidden="true">💧</div>
+                    <div>
+                        <p>Humidity</p>
+                        <h3 id="humidity">65%</h3>
+                    </div>
+                </article>
+
+                <article class="detail">
+                    <div class="detail-symbol" aria-hidden="true">🌡️</div>
+                    <div>
+                        <p>Feels Like</p>
+                        <h3 id="feelsLike">30°C</h3>
+                    </div>
+                </article>
+
+                <article class="detail">
+                    <div class="detail-symbol" aria-hidden="true">💨</div>
+                    <div>
+                        <p>Wind Speed</p>
+                        <h3 id="wind">12 m/s</h3>
+                    </div>
+                </article>
+
+            </div>
+
+            <p class="weather-note">
+                Preview layout — live weather will be connected soon.
+            </p>
+
+        </section>
+
     </main>
+
+    <footer class="footer">
+        <p>ClimateX <span>•</span> Weather Intelligence</p>
+    </footer>
 
     <script src="scripts.js"></script>
 
 </body>
 
-</html>
+</html></escape>
