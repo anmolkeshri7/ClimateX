@@ -1,0 +1,274 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+
+    <meta charset="UTF-8">
+
+    <meta name="viewport"
+          content="width=device-width, initial-scale=1.0">
+
+    <title>ClimateX | Weather App</title>
+
+    <link rel="stylesheet"
+          href="style.css">
+
+</head>
+
+<body>
+
+    <main class="app">
+
+
+        <!-- =========================
+             HEADER
+        ========================== -->
+
+        <header class="header">
+
+            <div class="brand">
+
+                <img
+                    src="image/logo.png"
+                    alt="ClimateX Logo"
+                    class="logo"
+                >
+
+                <div>
+
+                    <h1>Climate<span>X</span></h1>
+
+                    <p>
+                        Weather Intelligence
+                    </p>
+
+                </div>
+
+            </div>
+
+        </header>
+
+
+        <!-- =========================
+             HERO
+        ========================== -->
+
+        <section class="hero">
+
+            <div class="hero-content">
+
+                <p class="eyebrow">
+                    LIVE WEATHER
+                </p>
+
+                <h2>
+                    Know Your
+                    <span>Climate.</span>
+                </h2>
+
+                <p class="hero-description">
+                    Search any city and discover its current
+                    temperature, humidity and weather condition.
+                </p>
+
+
+                <!-- =================
+                     SEARCH
+                ================== -->
+
+                <div class="search-box">
+
+                    <input
+                        type="text"
+                        id="cityInput"
+                        placeholder="Enter city name..."
+                        autocomplete="off"
+                    >
+
+                    <button id="searchBtn">
+                        Search
+                    </button>
+
+                </div>
+
+            </div>
+
+        </section>
+
+
+        <!-- =========================
+             STATUS
+        ========================== -->
+
+        <div id="loading"
+             class="loading">
+
+            Fetching weather data...
+
+        </div>
+
+
+        <div id="errorMessage"
+             class="error-message">
+        </div>
+
+
+        <!-- =========================
+             WEATHER CARD
+        ========================== -->
+
+        <section
+            id="weatherCard"
+            class="weather-card"
+        >
+
+            <div class="weather-top">
+
+                <div>
+
+                    <p class="location-label">
+                        CURRENT WEATHER
+                    </p>
+
+                    <h2 id="cityName">
+                        --
+                    </h2>
+
+                    <p id="countryName">
+                        --
+                    </p>
+
+                </div>
+
+
+                <img
+                    id="weatherIcon"
+                    src=""
+                    alt="Weather"
+                    class="weather-icon"
+                >
+
+            </div>
+
+
+            <div class="temperature-section">
+
+                <span id="temperature">
+                    --
+                </span>
+
+                <span class="degree">
+                    °C
+                </span>
+
+            </div>
+
+
+            <p id="condition"
+               class="condition">
+
+                --
+
+            </p>
+
+
+            <!-- =================
+                 WEATHER DETAILS
+            ================== -->
+
+            <div class="weather-details">
+
+
+                <div class="detail">
+
+                    <div class="detail-symbol">
+                        💧
+                    </div>
+
+                    <div>
+
+                        <p>
+                            Humidity
+                        </p>
+
+                        <h3 id="humidity">
+                            --
+                        </h3>
+
+                    </div>
+
+                </div>
+
+
+                <div class="detail">
+
+                    <div class="detail-symbol">
+                        🌡️
+                    </div>
+
+                    <div>
+
+                        <p>
+                            Feels Like
+                        </p>
+
+                        <h3 id="feelsLike">
+                            --
+                        </h3>
+
+                    </div>
+
+                </div>
+
+
+                <div class="detail">
+
+                    <div class="detail-symbol">
+                        💨
+                    </div>
+
+                    <div>
+
+                        <p>
+                            Wind Speed
+                        </p>
+
+                        <h3 id="wind">
+                            --
+                        </h3>
+
+                    </div>
+
+                </div>
+
+
+            </div>
+
+        </section>
+
+
+        <!-- =========================
+             FOOTER
+        ========================== -->
+
+        <footer>
+
+            <p>
+                ClimateX
+            </p>
+
+            <span>
+                Weather data powered by OpenWeatherMap
+            </span>
+
+        </footer>
+
+
+    </main>
+
+
+    <script src="scripts.js"></script>
+
+</body>
+
+</html>
