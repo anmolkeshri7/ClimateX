@@ -108,6 +108,41 @@ body {
 }
 
 /* =================================
+   STEP 4: CITY INPUT
+================================= */
+
+.search-box {
+    max-width: 480px;
+    margin: 30px auto 0;
+}
+
+.search-box input {
+    width: 100%;
+    height: 56px;
+    padding: 0 20px;
+
+    border: 1px solid rgba(255, 255, 255, 0.22);
+    border-radius: 14px;
+    outline: none;
+
+    background: rgba(8, 22, 34, 0.75);
+    color: #ffffff;
+
+    font-size: 15px;
+    transition: border-color 0.25s ease,
+                box-shadow 0.25s ease;
+}
+
+.search-box input::placeholder {
+    color: #a9bac6;
+}
+
+.search-box input:focus {
+    border-color: #62d9ff;
+    box-shadow: 0 0 0 3px rgba(98, 217, 255, 0.13);
+}
+
+/* =================================
    RESPONSIVE DESIGN
 ================================= */
 
@@ -137,5 +172,9 @@ body {
 
     .hero-description {
         font-size: 14px;
+    }
+
+    .search-box input {
+        height: 52px;
     }
 }
