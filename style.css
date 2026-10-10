@@ -1,0 +1,64 @@
+```css
+/* Step 2: Basic page and header styling */
+
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    min-height: 100vh;
+    font-family: Arial, Helvetica, sans-serif;
+    color: #ffffff;
+
+    background:
+        linear-gradient(
+            rgba(5, 15, 25, 0.70),
+            rgba(5, 15, 25, 0.85)
+        ),
+        url("image/background.png");
+
+    background-size: cover;
+    background-position: center;
+    background-attachment: fixed;
+}
+
+/* Header */
+
+.header {
+    width: 100%;
+    padding: 24px 6%;
+}
+
+/* Logo and brand */
+
+.brand {
+    display: flex;
+    align-items: center;
+    gap: 13px;
+}
+
+.logo {
+    width: 55px;
+    height: 55px;
+    object-fit: contain;
+}
+
+.brand-info h1 {
+    font-size: 27px;
+    font-weight: 700;
+    letter-spacing: 1px;
+}
+
+.brand-info h1 span {
+    color: #62d9ff;
+}
+
+.brand-info p {
+    margin-top: 4px;
+    color: #b3c4d0;
+    font-size: 12px;
+    letter-spacing: 1.2px;
+}
+```
