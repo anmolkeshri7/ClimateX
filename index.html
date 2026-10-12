@@ -15,7 +15,6 @@
 
 <body>
 
-    <!-- Header -->
     <header class="header">
         <a href="#" class="brand" aria-label="ClimateX Home">
 
@@ -74,45 +73,66 @@
 
             </div>
 
+            <!-- Step 8: Loading Indicator -->
+            <div
+                id="loading"
+                class="loading"
+                role="status"
+                aria-live="polite"
+                hidden
+            >
+                <span class="spinner" aria-hidden="true"></span>
+                <span>Fetching weather data...</span>
+            </div>
+
+            <!-- Step 8: Error Message -->
+            <div
+                id="errorMessage"
+                class="error-message"
+                role="alert"
+                hidden
+            ></div>
+
         </section>
 
         <!-- Weather Card -->
-        <section class="weather-card" id="weatherCard">
+        <section
+            class="weather-card"
+            id="weatherCard"
+            aria-label="Current weather"
+            hidden
+        >
 
             <div class="weather-top">
 
                 <div class="weather-location">
                     <p class="location-label">CURRENT WEATHER</p>
-                    <h2 id="cityName">Ranchi</h2>
-                    <p id="countryName">IN</p>
+                    <h2 id="cityName">--</h2>
+                    <p id="countryName">--</p>
                 </div>
 
                 <img
                     id="weatherIcon"
                     class="weather-icon"
-                    src="https://openweathermap.org/img/wn/02d@2x.png"
-                    alt="Weather icon preview"
+                    src=""
+                    alt="Weather icon"
                 >
 
             </div>
 
-            <!-- Main Temperature -->
             <div class="temperature-section">
-                <span id="temperature">28</span><span class="degree">°C</span>
+                <span id="temperature">--</span><span class="degree">°C</span>
             </div>
 
-            <p id="condition" class="condition">
-                Partly cloudy
-            </p>
+            <p id="condition" class="condition">--</p>
 
-            <!-- Weather Details -->
             <div class="weather-details">
 
                 <article class="detail">
                     <div class="detail-symbol" aria-hidden="true">💧</div>
                     <div>
                         <p>Humidity</p>
-                        <h3 id="humidity">65%</h3>
+                        <h3 id="humidity">--</h3>
                     </div>
                 </article>
 
@@ -120,7 +140,7 @@
                     <div class="detail-symbol" aria-hidden="true">🌡️</div>
                     <div>
                         <p>Feels Like</p>
-                        <h3 id="feelsLike">30°C</h3>
+                        <h3 id="feelsLike">--</h3>
                     </div>
                 </article>
 
@@ -128,16 +148,21 @@
                     <div class="detail-symbol" aria-hidden="true">💨</div>
                     <div>
                         <p>Wind Speed</p>
-                        <h3 id="wind">12 m/s</h3>
+                        <h3 id="wind">--</h3>
                     </div>
                 </article>
 
             </div>
 
-            <p class="weather-note">
-                Preview layout — live weather will be connected soon.
-            </p>
+        </section>
 
+        <!-- Step 8: Initial Empty State -->
+        <section class="empty-state" id="emptyState">
+            <div class="empty-icon" aria-hidden="true">☁</div>
+            <h2>Ready to explore?</h2>
+            <p>
+                Search for a city to discover its current weather.
+            </p>
         </section>
 
     </main>
