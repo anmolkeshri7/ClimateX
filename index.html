@@ -1,184 +1,146 @@
- <escape><!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="en">
-
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-
-    <meta name="description"
-          content="ClimateX helps you explore weather conditions and plan your day.">
-
+    <meta name="theme-color" content="#101827">
+    <meta name="description" content="ClimateX — Explore current weather conditions, temperature, humidity, and wind speed for cities around the world.">
     <title>ClimateX | Weather Intelligence</title>
-
     <link rel="stylesheet" href="style.css">
 </head>
-
 <body>
 
-    <!-- Header -->
+    <div class="page-overlay"></div>
+
     <header class="header">
-        <a href="#" class="brand" aria-label="ClimateX Home">
-
-            <img
-                src="image/logo.png"
-                alt="ClimateX Logo"
-                class="logo"
-            >
-
-            <div class="brand-info">
-                <h1>Climate<span>X</span></h1>
+        <a href="#" class="brand" aria-label="ClimateX home">
+            <img src="image/logo.png" alt="ClimateX logo" class="logo">
+            <div class="brand-text">
+                <h2>ClimateX</h2>
                 <p>Weather Intelligence</p>
             </div>
-
         </a>
+
+        <div class="header-label">
+            <span class="status-dot"></span>
+            Live Weather
+        </div>
     </header>
 
-    <main>
+    <main class="main-content">
 
-        <!-- Hero Section -->
         <section class="hero">
-
-            <p class="eyebrow">YOUR WEATHER, REIMAGINED</p>
-
-            <h2>
-                Understand the
-                <span>Atmosphere.</span>
-            </h2>
-
+            <p class="eyebrow">YOUR WORLD, YOUR WEATHER</p>
+            <h1>Understand the <span>Atmosphere.</span></h1>
             <p class="hero-description">
-                Explore the weather around you.
-                Get the insights you need to plan your day
-                with confidence.
+                Discover the weather around you. Search any city to explore
+                its current temperature, humidity, wind, and more.
             </p>
+        </section>
 
-            <!-- City Search -->
-            <div class="search-box">
+        <section class="search-section" aria-label="Search for a city">
+            <form id="weatherForm" class="search-form">
+                <label for="cityInput" class="sr-only">Enter city name</label>
+
+                <span class="search-icon" aria-hidden="true">⌕</span>
 
                 <input
                     type="text"
                     id="cityInput"
-                    name="city"
-                    placeholder="Enter a city name..."
-                    aria-label="Enter city name"
+                    placeholder="Enter a city, e.g. Ranchi"
                     autocomplete="off"
+                    maxlength="100"
+                    required
                 >
 
-                <button
-                    type="button"
-                    id="searchBtn"
-                    class="search-btn"
-                >
-                    Search
-                    <span aria-hidden="true">→</span>
+                <button type="submit" id="searchBtn">
+                    Search <span aria-hidden="true">→</span>
                 </button>
+            </form>
 
-            </div>
-
-            <!-- Loading Indicator -->
-            <div
-                id="loading"
-                class="loading"
-                role="status"
-                aria-live="polite"
-                hidden
-            >
-                <span class="spinner" aria-hidden="true"></span>
-                <span>Fetching weather data...</span>
-            </div>
-
-            <!-- Error Message -->
-            <div
-                id="errorMessage"
-                class="error-message"
-                role="alert"
-                hidden
-            ></div>
-
+            <p class="search-hint">
+                Try Ranchi, Delhi, Mumbai, London or Tokyo
+            </p>
         </section>
 
-        <!-- Weather Card -->
-        <section
-            class="weather-card"
-            id="weatherCard"
-            aria-label="Current weather"
-            hidden
-        >
+        <div id="loading" class="loading" role="status" aria-live="polite" hidden>
+            <div class="spinner"></div>
+            <p>Gathering weather intelligence...</p>
+        </div>
 
-            <div class="weather-top">
+        <div id="errorMessage" class="error-message" role="alert" hidden></div>
 
-                <div class="weather-location">
-                    <p class="location-label">CURRENT WEATHER</p>
-                    <h2 id="cityName">--</h2>
-                    <p id="countryName">--</p>
+        <section id="weatherCard" class="weather-card" aria-label="Current weather" hidden>
+
+            <div class="weather-card-header">
+                <div>
+                    <p class="card-label">CURRENT CONDITIONS</p>
+                    <h2 id="cityName">City</h2>
+                    <p id="countryName" class="country-name"></p>
+                    <p id="currentDateTime" class="current-date-time">
+                        Local date and time
+                    </p>
                 </div>
 
-                <img
-                    id="weatherIcon"
-                    class="weather-icon"
-                    src=""
-                    alt="Weather icon"
-                >
-
+                <div class="weather-icon-container">
+                    <img id="weatherIcon" src="" alt="" class="weather-icon">
+                </div>
             </div>
 
-            <!-- Temperature -->
             <div class="temperature-section">
-                <span id="temperature">--</span><span class="degree">°C</span>
+                <div class="temperature-value">
+                    <span id="temperature">--</span><span class="degree">°C</span>
+                </div>
+                <p id="condition" class="weather-condition">Weather condition</p>
+                <p class="temperature-caption">Current temperature</p>
             </div>
 
-            <p id="condition" class="condition">--</p>
-
-            <!-- Weather Details -->
             <div class="weather-details">
-
-                <article class="detail">
-                    <div class="detail-symbol" aria-hidden="true">💧</div>
+                <article class="detail-item">
+                    <div class="detail-icon" aria-hidden="true">💧</div>
                     <div>
-                        <p>Humidity</p>
-                        <h3 id="humidity">--</h3>
+                        <p class="detail-label">Humidity</p>
+                        <p id="humidity" class="detail-value">--%</p>
                     </div>
                 </article>
 
-                <article class="detail">
-                    <div class="detail-symbol" aria-hidden="true">🌡️</div>
+                <article class="detail-item">
+                    <div class="detail-icon" aria-hidden="true">🌡️</div>
                     <div>
-                        <p>Feels Like</p>
-                        <h3 id="feelsLike">--</h3>
+                        <p class="detail-label">Feels Like</p>
+                        <p id="feelsLike" class="detail-value">--°C</p>
                     </div>
                 </article>
 
-                <article class="detail">
-                    <div class="detail-symbol" aria-hidden="true">💨</div>
+                <article class="detail-item">
+                    <div class="detail-icon" aria-hidden="true">💨</div>
                     <div>
-                        <p>Wind Speed</p>
-                        <h3 id="wind">--</h3>
+                        <p class="detail-label">Wind Speed</p>
+                        <p id="wind" class="detail-value">-- m/s</p>
                     </div>
                 </article>
-
             </div>
+
+            <button type="button" id="refreshBtn" class="refresh-btn">
+                <span aria-hidden="true">↻</span> Refresh Weather
+            </button>
 
         </section>
 
-        <!-- Empty State -->
-        <section class="empty-state" id="emptyState">
+        <section id="emptyState" class="empty-state">
             <div class="empty-icon" aria-hidden="true">☁</div>
-            <h2>Ready to explore?</h2>
-            <p>
-                Search for a city to discover its current weather.
-            </p>
+            <h2>Your weather journey starts here.</h2>
+            <p>Enter a city above to discover its current weather.</p>
         </section>
 
     </main>
 
-    <!-- Footer -->
     <footer class="footer">
-        <p>ClimateX <span>•</span> Weather Intelligence</p>
+        <p>© 2026 ClimateX. Made for a brighter tomorrow.</p>
+        <p>Weather data powered by OpenWeatherMap.</p>
     </footer>
 
-    <!-- Load API configuration before application JavaScript -->
     <script src="config.js"></script>
     <script src="scripts.js"></script>
-
 </body>
-
-</html></escape>
+</html>
