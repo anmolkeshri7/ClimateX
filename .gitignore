@@ -1,0 +1,11 @@
+config.js
+.env
+.env.*
+!.env.example
+
+.vscode/
+.DS_Store
+Thumbs.db
+
+__pycache__/
+*.py[cod]

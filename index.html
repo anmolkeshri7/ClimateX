@@ -15,6 +15,7 @@
 
 <body>
 
+    <!-- Header -->
     <header class="header">
         <a href="#" class="brand" aria-label="ClimateX Home">
 
@@ -73,7 +74,7 @@
 
             </div>
 
-            <!-- Step 8: Loading Indicator -->
+            <!-- Loading Indicator -->
             <div
                 id="loading"
                 class="loading"
@@ -85,7 +86,7 @@
                 <span>Fetching weather data...</span>
             </div>
 
-            <!-- Step 8: Error Message -->
+            <!-- Error Message -->
             <div
                 id="errorMessage"
                 class="error-message"
@@ -120,12 +121,14 @@
 
             </div>
 
+            <!-- Temperature -->
             <div class="temperature-section">
                 <span id="temperature">--</span><span class="degree">°C</span>
             </div>
 
             <p id="condition" class="condition">--</p>
 
+            <!-- Weather Details -->
             <div class="weather-details">
 
                 <article class="detail">
@@ -156,7 +159,7 @@
 
         </section>
 
-        <!-- Step 8: Initial Empty State -->
+        <!-- Empty State -->
         <section class="empty-state" id="emptyState">
             <div class="empty-icon" aria-hidden="true">☁</div>
             <h2>Ready to explore?</h2>
@@ -167,10 +170,13 @@
 
     </main>
 
+    <!-- Footer -->
     <footer class="footer">
         <p>ClimateX <span>•</span> Weather Intelligence</p>
     </footer>
 
+    <!-- Load API configuration before application JavaScript -->
+    <script src="config.js"></script>
     <script src="scripts.js"></script>
 
 </body>
