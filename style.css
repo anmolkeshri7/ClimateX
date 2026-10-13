@@ -1,6 +1,6 @@
 /* ========================================
    ClimateX — Weather Intelligence
-   Main stylesheet
+   Step 12: Temperature Toggle UI
 ======================================== */
 
 :root {
@@ -152,7 +152,7 @@ body {
     line-height: 1.8;
 }
 
-/* Search form */
+/* Search */
 
 .search-section {
     width: min(650px, 100%);
@@ -235,7 +235,7 @@ body {
     font-size: 0.82rem;
 }
 
-/* Loading and error */
+/* Loading and errors */
 
 .loading {
     display: flex;
@@ -331,9 +331,64 @@ body {
     animation: floatIcon 3s ease-in-out infinite;
 }
 
+/* Temperature display */
+
 .temperature-section {
     padding: 24px 0 28px;
     border-bottom: 1px solid var(--glass-border);
+}
+
+.temperature-heading {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    margin-bottom: 12px;
+}
+
+.temperature-caption {
+    color: var(--text-secondary);
+    font-size: 0.85rem;
+}
+
+.unit-toggle {
+    display: flex;
+    gap: 4px;
+    padding: 4px;
+    border: 1px solid var(--glass-border);
+    border-radius: 12px;
+    background: rgba(255, 255, 255, 0.05);
+}
+
+.unit-btn {
+    min-width: 42px;
+    padding: 8px 10px;
+    border: none;
+    border-radius: 8px;
+    color: var(--text-secondary);
+    background: transparent;
+    font: inherit;
+    font-weight: 700;
+    cursor: pointer;
+    transition: background 0.2s, color 0.2s, transform 0.2s;
+}
+
+.unit-btn:hover {
+    color: white;
+}
+
+.unit-btn.active {
+    color: #071623;
+    background: var(--accent);
+}
+
+.unit-btn:active {
+    transform: scale(0.96);
+}
+
+.unit-btn:focus-visible {
+    outline: 2px solid white;
+    outline-offset: 3px;
 }
 
 .temperature-value {
@@ -360,11 +415,11 @@ body {
     text-transform: capitalize;
 }
 
-.temperature-caption {
+.temperature-section > .temperature-caption {
     margin-top: 6px;
-    color: var(--text-secondary);
-    font-size: 0.85rem;
 }
+
+/* Weather details */
 
 .weather-details {
     display: grid;
@@ -605,6 +660,11 @@ input:focus-visible {
 
     .temperature-value {
         font-size: 4rem;
+    }
+
+    .unit-btn {
+        min-width: 38px;
+        padding: 8px;
     }
 }
 

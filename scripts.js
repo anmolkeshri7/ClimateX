@@ -1,6 +1,6 @@
 // ========================================
 // ClimateX — Weather Intelligence
-// OpenWeatherMap API integration
+// Step 12: Celsius / Fahrenheit Conversion
 // ========================================
 
 const API_URL = "https://api.openweathermap.org/data/2.5/weather";
@@ -22,14 +22,26 @@ const cityName = document.getElementById("cityName");
 const countryName = document.getElementById("countryName");
 const currentDateTime = document.getElementById("currentDateTime");
 const temperature = document.getElementById("temperature");
+const temperatureUnit = document.getElementById("temperatureUnit");
 const condition = document.getElementById("condition");
 const humidity = document.getElementById("humidity");
 const feelsLike = document.getElementById("feelsLike");
 const wind = document.getElementById("wind");
 const weatherIcon = document.getElementById("weatherIcon");
 
+// Temperature toggle buttons
+const celsiusBtn = document.getElementById("celsiusBtn");
+const fahrenheitBtn = document.getElementById("fahrenheitBtn");
+
 // Store the last successfully searched city
 let lastSearchedCity = "";
+
+// Store original temperatures in Celsius
+let currentTempCelsius = null;
+let feelsLikeCelsius = null;
+
+// Selected temperature unit
+let currentUnit = "C";
 
 // Display an error message
 function showError(message) {
@@ -79,6 +91,61 @@ function updateDateTime() {
     });
 }
 
+// Convert Celsius to Fahrenheit
+function toFahrenheit(celsius) {
+    return (celsius * 9 / 5) + 32;
+}
+
+// Update the temperature unit toggle appearance
+function updateToggleButtons() {
+    const isCelsius = currentUnit === "C";
+
+    celsiusBtn.classList.toggle("active", isCelsius);
+    fahrenheitBtn.classList.toggle("active", !isCelsius);
+
+    celsiusBtn.setAttribute("aria-pressed", String(isCelsius));
+    fahrenheitBtn.setAttribute("aria-pressed", String(!isCelsius));
+}
+
+// Render temperatures in the selected unit
+function renderTemperatures() {
+    if (currentTempCelsius === null || feelsLikeCelsius === null) {
+        return;
+    }
+
+    let displayedTemp;
+    let displayedFeelsLike;
+    let unitSymbol;
+
+    if (currentUnit === "C") {
+        displayedTemp = currentTempCelsius;
+        displayedFeelsLike = feelsLikeCelsius;
+        unitSymbol = "°C";
+    } else {
+        displayedTemp = toFahrenheit(currentTempCelsius);
+        displayedFeelsLike = toFahrenheit(feelsLikeCelsius);
+        unitSymbol = "°F";
+    }
+
+    temperature.textContent = Math.round(displayedTemp);
+    temperatureUnit.textContent = unitSymbol;
+    feelsLike.textContent = `${Math.round(displayedFeelsLike)}${unitSymbol}`;
+
+    updateToggleButtons();
+}
+
+// Switch to Celsius
+celsiusBtn.addEventListener("click", () => {
+    currentUnit = "C";
+    renderTemperatures();
+});
+
+// Switch to Fahrenheit
+fahrenheitBtn.addEventListener("click", () => {
+    currentUnit = "F";
+    renderTemperatures();
+});
+
 // Request current weather from OpenWeatherMap
 async function handleSearch(cityOverride = "") {
     const city = (cityOverride || cityInput.value).trim();
@@ -127,7 +194,7 @@ async function handleSearch(cityOverride = "") {
 
             if (response.status === 401) {
                 throw new Error(
-                    "OpenWeatherMap rejected the API key. It may be inactive or invalid. Please wait for activation and try again."
+                    "OpenWeatherMap rejected the API key. It may still be activating or may be invalid. Please try again later."
                 );
             }
 
@@ -159,7 +226,9 @@ async function handleSearch(cityOverride = "") {
                 "Network error. Check your internet connection and try again."
             );
         } else {
-            showError(error.message || "Something went wrong. Please try again.");
+            showError(
+                error.message || "Something went wrong. Please try again."
+            );
         }
 
         weatherCard.hidden = true;
@@ -170,15 +239,20 @@ async function handleSearch(cityOverride = "") {
     }
 }
 
-// Fill the weather card using API data
+// Display weather information
 function displayWeather(data) {
     cityName.textContent = data.name;
     countryName.textContent = data.sys.country;
 
-    temperature.textContent = Math.round(data.main.temp);
+    // Save original API temperatures in Celsius
+    currentTempCelsius = data.main.temp;
+    feelsLikeCelsius = data.main.feels_like;
+
+    // Preserve the user's selected unit
+    renderTemperatures();
+
     condition.textContent = data.weather[0].description;
     humidity.textContent = `${data.main.humidity}%`;
-    feelsLike.textContent = `${Math.round(data.main.feels_like)}°C`;
     wind.textContent = `${data.wind.speed} m/s`;
 
     const iconCode = data.weather[0].icon;
@@ -194,7 +268,7 @@ function displayWeather(data) {
     emptyState.hidden = true;
 }
 
-// Search form submission
+// Submit city search
 weatherForm.addEventListener("submit", (event) => {
     event.preventDefault();
     handleSearch();
@@ -209,6 +283,8 @@ refreshBtn.addEventListener("click", () => {
     }
 });
 
-// Keep the displayed date and time updated every minute
+// Initialize date/time and unit toggle
 updateDateTime();
+updateToggleButtons();
+
 setInterval(updateDateTime, 60000);

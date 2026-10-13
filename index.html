@@ -88,11 +88,35 @@
             </div>
 
             <div class="temperature-section">
-                <div class="temperature-value">
-                    <span id="temperature">--</span><span class="degree">°C</span>
+
+                <div class="temperature-heading">
+                    <span class="temperature-caption">Current temperature</span>
+
+                    <div class="unit-toggle" role="group" aria-label="Temperature unit">
+                        <button
+                            type="button"
+                            id="celsiusBtn"
+                            class="unit-btn active"
+                            aria-pressed="true"
+                        >°C</button>
+
+                        <button
+                            type="button"
+                            id="fahrenheitBtn"
+                            class="unit-btn"
+                            aria-pressed="false"
+                        >°F</button>
+                    </div>
                 </div>
+
+                <div class="temperature-value">
+                    <span id="temperature">--</span>
+                    <span class="degree" id="temperatureUnit">°C</span>
+                </div>
+
                 <p id="condition" class="weather-condition">Weather condition</p>
-                <p class="temperature-caption">Current temperature</p>
+                <p class="temperature-caption">Current conditions</p>
+
             </div>
 
             <div class="weather-details">
