@@ -6,6 +6,15 @@ const RECENT_STORAGE_KEY = "climateXRecentCities";
 const FAVOURITES_STORAGE_KEY = "climateXFavouriteCities";
 const MAX_RECENT_CITIES = 5;
 
+const THEME_CLASSES = [
+    "theme-sunny",
+    "theme-cloudy",
+    "theme-rainy",
+    "theme-stormy",
+    "theme-snowy",
+    "theme-night"
+];
+
 const weatherForm = document.getElementById("weatherForm");
 const cityInput = document.getElementById("cityInput");
 const searchBtn = document.getElementById("searchBtn");
@@ -129,6 +138,56 @@ function resetLocationButton() {
     locationBtnText.textContent = "Use My Location";
 }
 
+/* Dynamic weather theme */
+
+function applyWeatherTheme(data) {
+    document.body.classList.remove(...THEME_CLASSES);
+
+    const weather = data.weather?.[0];
+    const weatherId = Number(weather?.id || 0);
+    const iconCode = weather?.icon || "";
+    const description = (weather?.main || "").toLowerCase();
+    const isNight = iconCode.endsWith("n");
+
+    let theme;
+
+    // OpenWeatherMap weather condition codes:
+    // 200-232: thunderstorms
+    // 300-321: drizzle
+    // 500-531: rain
+    // 600-622: snow
+    // 701-781: atmosphere conditions
+    // 800: clear
+    // 801-804: clouds
+
+    if (isNight) {
+        theme = "theme-night";
+    } else if (weatherId >= 200 && weatherId < 300) {
+        theme = "theme-stormy";
+    } else if (
+        (weatherId >= 300 && weatherId < 600) ||
+        description === "rain" ||
+        description === "drizzle"
+    ) {
+        theme = "theme-rainy";
+    } else if (
+        (weatherId >= 600 && weatherId < 700) ||
+        description === "snow"
+    ) {
+        theme = "theme-snowy";
+    } else if (
+        weatherId === 800 ||
+        description === "clear"
+    ) {
+        theme = "theme-sunny";
+    } else {
+        theme = "theme-cloudy";
+    }
+
+    document.body.classList.add(theme);
+    document.documentElement.dataset.weatherTheme = theme.replace("theme-", "");
+}
+
 function formatTemperature(value) {
     const converted = temperatureScale === "F"
         ? (value * 9) / 5 + 32
@@ -189,6 +248,9 @@ function getWeatherIconUrl(iconCode) {
 
 function displayWeather(data) {
     latestWeather = data;
+
+    // Change the page appearance based on the current weather.
+    applyWeatherTheme(data);
 
     cityName.textContent = data.name || "Selected location";
     countryName.textContent = data.sys?.country || "Location found";
@@ -329,9 +391,7 @@ function renderForecast() {
 
         const dateLabel = document.createElement("p");
         dateLabel.className = "forecast-date";
-        dateLabel.textContent = formatDate(`${day.date}T12:00:00`, {
-            weekday: undefined
-        });
+        dateLabel.textContent = formatDate(`${day.date}T12:00:00`);
 
         const icon = document.createElement("img");
         icon.className = "forecast-icon";
@@ -483,28 +543,6 @@ function renderInsights() {
     insightsSection.hidden = false;
 }
 
-function getApiErrorMessage(error) {
-    const message = String(error?.message || "").toLowerCase();
-
-    if (message.includes("city not found") || message.includes("not found")) {
-        return "We couldn't find that location. Check the spelling and try again.";
-    }
-
-    if (message.includes("401") || message.includes("invalid api key")) {
-        return "The API key was rejected. Check your OpenWeatherMap API key in config.js.";
-    }
-
-    if (message.includes("429")) {
-        return "The weather service has received too many requests. Please try again later.";
-    }
-
-    if (message.includes("failed to fetch") || message.includes("network")) {
-        return "Unable to connect to the weather service. Check your internet connection.";
-    }
-
-    return "We couldn't load weather for that location. Please try again.";
-}
-
 /* Recent searches */
 
 function addRecentCity(city) {
@@ -587,7 +625,6 @@ function updateFavouriteButton() {
     }
 
     const currentCity = latestWeather.name || "";
-
     favouriteBtn.disabled = !currentCity;
 
     const saved = currentCity && isFavourite(currentCity);
@@ -729,7 +766,6 @@ async function loadWeatherForQuery(
             cityInput.value = currentData.name || "";
         }
 
-        // Save the successfully resolved city name, not unverified input.
         addRecentCity(currentData.name || city);
 
         forecastSection.hidden = false;
@@ -777,6 +813,28 @@ async function loadWeatherForQuery(
     }
 }
 
+function getApiErrorMessage(error) {
+    const message = String(error?.message || "").toLowerCase();
+
+    if (message.includes("city not found") || message.includes("not found")) {
+        return "We couldn't find that location. Check the spelling and try again.";
+    }
+
+    if (message.includes("401") || message.includes("invalid api key")) {
+        return "The API key was rejected. Check your OpenWeatherMap API key in config.js.";
+    }
+
+    if (message.includes("429")) {
+        return "The weather service has received too many requests. Please try again later.";
+    }
+
+    if (message.includes("failed to fetch") || message.includes("network")) {
+        return "Unable to connect to the weather service. Check your internet connection.";
+    }
+
+    return "We couldn't load weather for that location. Please try again.";
+}
+
 async function handleSearch(cityOverride = "") {
     const city = cityOverride.trim() || cityInput.value.trim();
 
@@ -794,10 +852,8 @@ async function handleSearch(cityOverride = "") {
     const requestId = ++searchRequestId;
     resetLocationButton();
 
-    const query = `q=${encodeURIComponent(city)}`;
-
     await loadWeatherForQuery(
-        query,
+        `q=${encodeURIComponent(city)}`,
         requestId,
         "city",
         city,
@@ -913,7 +969,6 @@ weatherForm.addEventListener("submit", event => {
 });
 
 locationBtn.addEventListener("click", handleLocationSearch);
-
 refreshBtn.addEventListener("click", refreshLastSearch);
 
 celsiusBtn.addEventListener("click", () => {
