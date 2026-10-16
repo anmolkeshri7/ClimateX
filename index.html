@@ -49,6 +49,27 @@
                 <p class="search-hint">Search any city or allow location access for local weather.</p>
             </section>
 
+            <section id="savedCitiesSection" class="saved-cities-section" aria-label="Saved cities">
+                <div class="saved-group" id="recentGroup">
+                    <div class="saved-heading">
+                        <h2><span aria-hidden="true">◷</span> Recent searches</h2>
+                        <button type="button" id="clearRecentBtn" class="text-btn">Clear</button>
+                    </div>
+                    <div id="recentCities" class="city-chips">
+                        <p class="saved-empty">Your recent cities will appear here.</p>
+                    </div>
+                </div>
+
+                <div class="saved-group" id="favouritesGroup">
+                    <div class="saved-heading">
+                        <h2><span aria-hidden="true">★</span> Favourite cities</h2>
+                    </div>
+                    <div id="favouriteCities" class="city-chips">
+                        <p class="saved-empty">Star a city to save it here.</p>
+                    </div>
+                </div>
+            </section>
+
             <div id="loading" class="status-message" role="status" aria-live="polite" hidden>
                 <span class="spinner" aria-hidden="true"></span>
                 <span>Getting your weather...</span>
@@ -64,7 +85,14 @@
                         <p id="countryName" class="muted-text"></p>
                         <p id="currentDateTime" class="muted-text"></p>
                     </div>
-                    <button type="button" id="refreshBtn" class="icon-btn" aria-label="Refresh weather" title="Refresh weather">↻</button>
+
+                    <div class="weather-actions">
+                        <button type="button" id="favouriteBtn" class="favourite-btn" aria-pressed="false" title="Add to favourites">
+                            <span id="favouriteIcon" aria-hidden="true">☆</span>
+                            <span id="favouriteBtnText">Add favourite</span>
+                        </button>
+                        <button type="button" id="refreshBtn" class="icon-btn" aria-label="Refresh weather" title="Refresh weather">↻</button>
+                    </div>
                 </div>
 
                 <div class="current-weather-main">

@@ -2,6 +2,10 @@ const CURRENT_WEATHER_URL = "https://api.openweathermap.org/data/2.5/weather";
 const FORECAST_URL = "https://api.openweathermap.org/data/2.5/forecast";
 const WEATHER_ICON_URL = "https://openweathermap.org/img/wn/";
 
+const RECENT_STORAGE_KEY = "climateXRecentCities";
+const FAVOURITES_STORAGE_KEY = "climateXFavouriteCities";
+const MAX_RECENT_CITIES = 5;
+
 const weatherForm = document.getElementById("weatherForm");
 const cityInput = document.getElementById("cityInput");
 const searchBtn = document.getElementById("searchBtn");
@@ -37,14 +41,57 @@ const forecastLocation = document.getElementById("forecastLocation");
 const forecastGrid = document.getElementById("forecastGrid");
 const forecastNote = document.getElementById("forecastNote");
 
+const recentCitiesContainer = document.getElementById("recentCities");
+const favouriteCitiesContainer = document.getElementById("favouriteCities");
+const clearRecentBtn = document.getElementById("clearRecentBtn");
+const favouriteBtn = document.getElementById("favouriteBtn");
+const favouriteIcon = document.getElementById("favouriteIcon");
+const favouriteBtnText = document.getElementById("favouriteBtnText");
+
 let latestWeather = null;
 let latestForecast = null;
 let forecastDays = [];
 let temperatureScale = "C";
 let searchRequestId = 0;
+
 let lastSearchMode = null;
 let lastSearchedCity = "";
 let lastCoordinates = null;
+
+let recentCities = readStoredCities(RECENT_STORAGE_KEY);
+let favouriteCities = readStoredCities(FAVOURITES_STORAGE_KEY);
+
+function readStoredCities(key) {
+    try {
+        const saved = JSON.parse(localStorage.getItem(key) || "[]");
+
+        if (!Array.isArray(saved)) {
+            return [];
+        }
+
+        return saved
+            .filter(city => typeof city === "string" && city.trim())
+            .map(city => city.trim())
+            .filter((city, index, list) =>
+                list.findIndex(item =>
+                    item.toLowerCase() === city.toLowerCase()
+                ) === index
+            );
+    } catch (error) {
+        console.warn("Unable to read saved cities:", error);
+        return [];
+    }
+}
+
+function saveCities(key, cities) {
+    try {
+        localStorage.setItem(key, JSON.stringify(cities));
+        return true;
+    } catch (error) {
+        console.warn("Unable to save cities:", error);
+        return false;
+    }
+}
 
 function hasApiKey() {
     return typeof API_KEY !== "undefined"
@@ -82,22 +129,12 @@ function resetLocationButton() {
     locationBtnText.textContent = "Use My Location";
 }
 
-function setForecastLoading(isLoading) {
-    forecastLoading.hidden = !isLoading;
-    forecastError.hidden = true;
-    forecastGrid.hidden = isLoading;
-}
-
-function getTemperature(value) {
-    if (temperatureScale === "F") {
-        return Math.round((value * 9) / 5 + 32);
-    }
-
-    return Math.round(value);
-}
-
 function formatTemperature(value) {
-    return `${getTemperature(value)}°${temperatureScale}`;
+    const converted = temperatureScale === "F"
+        ? (value * 9) / 5 + 32
+        : value;
+
+    return `${Math.round(converted)}°${temperatureScale}`;
 }
 
 function formatDate(dateString, options = {}) {
@@ -117,8 +154,12 @@ function updateClock() {
     }
 
     const timezoneOffset = latestWeather.timezone || 0;
-    const utcMilliseconds = Date.now() + new Date().getTimezoneOffset() * 60000;
-    const localTime = new Date(utcMilliseconds + timezoneOffset * 1000);
+    const utcMilliseconds =
+        Date.now() + new Date().getTimezoneOffset() * 60000;
+
+    const localTime = new Date(
+        utcMilliseconds + timezoneOffset * 1000
+    );
 
     currentDateTime.textContent = localTime.toLocaleString(undefined, {
         weekday: "long",
@@ -134,11 +175,9 @@ async function fetchWeatherData(url) {
     const data = await response.json();
 
     if (!response.ok) {
-        const message = data && data.message
-            ? data.message
-            : "Unable to retrieve weather data.";
-
-        throw new Error(message);
+        throw new Error(
+            data?.message || "Unable to retrieve weather data."
+        );
     }
 
     return data;
@@ -151,25 +190,32 @@ function getWeatherIconUrl(iconCode) {
 function displayWeather(data) {
     latestWeather = data;
 
-    cityName.textContent = data.name || "Your location";
+    cityName.textContent = data.name || "Selected location";
     countryName.textContent = data.sys?.country || "Location found";
 
     const iconCode = data.weather?.[0]?.icon;
+
     weatherIcon.src = iconCode ? getWeatherIconUrl(iconCode) : "";
     weatherIcon.alt = data.weather?.[0]?.description || "Current weather";
 
-    temperature.textContent = getTemperature(data.main.temp);
+    temperature.textContent = Math.round(data.main.temp);
     temperatureUnit.textContent = `°${temperatureScale}`;
-    condition.textContent = data.weather?.[0]?.description || "Unavailable";
+
+    condition.textContent =
+        data.weather?.[0]?.description || "Unavailable";
+
     humidity.textContent = `${data.main.humidity}%`;
     feelsLike.textContent = formatTemperature(data.main.feels_like);
-    wind.textContent = `${Number(data.wind?.speed ?? 0).toFixed(1)} m/s`;
+
+    wind.textContent =
+        `${Number(data.wind?.speed ?? 0).toFixed(1)} m/s`;
 
     weatherCard.hidden = false;
     emptyState.hidden = true;
 
     updateClock();
     updateUnitButtons();
+    updateFavouriteButton();
 }
 
 function updateUnitButtons() {
@@ -185,7 +231,12 @@ function updateUnitButtons() {
         return;
     }
 
-    temperature.textContent = getTemperature(latestWeather.main.temp);
+    temperature.textContent = Math.round(
+        temperatureScale === "F"
+            ? (latestWeather.main.temp * 9) / 5 + 32
+            : latestWeather.main.temp
+    );
+
     temperatureUnit.textContent = `°${temperatureScale}`;
     feelsLike.textContent = formatTemperature(latestWeather.main.feels_like);
 
@@ -211,8 +262,13 @@ function prepareForecast(data) {
         .filter(([date]) => date >= today)
         .slice(0, 5)
         .map(([date, entries]) => {
-            const minTemp = Math.min(...entries.map(item => item.main.temp_min));
-            const maxTemp = Math.max(...entries.map(item => item.main.temp_max));
+            const minTemp = Math.min(
+                ...entries.map(item => item.main.temp_min)
+            );
+
+            const maxTemp = Math.max(
+                ...entries.map(item => item.main.temp_max)
+            );
 
             const representative = entries.reduce((closest, item) => {
                 const itemHour = Number(item.dt_txt.slice(11, 13));
@@ -223,13 +279,15 @@ function prepareForecast(data) {
                     : closest;
             }, entries[0]);
 
-            const maxRainChance = Math.max(
-                ...entries.map(item => (item.pop || 0) * 100)
+            const rainChance = Math.round(
+                Math.max(...entries.map(item => (item.pop || 0) * 100))
             );
 
             const averageHumidity = Math.round(
-                entries.reduce((sum, item) => sum + item.main.humidity, 0)
-                / entries.length
+                entries.reduce(
+                    (sum, item) => sum + item.main.humidity,
+                    0
+                ) / entries.length
             );
 
             return {
@@ -237,9 +295,10 @@ function prepareForecast(data) {
                 minTemp,
                 maxTemp,
                 icon: representative.weather?.[0]?.icon,
-                description: representative.weather?.[0]?.description || "Unavailable",
+                description:
+                    representative.weather?.[0]?.description || "Unavailable",
                 humidity: averageHumidity,
-                rainChance: Math.round(maxRainChance)
+                rainChance
             };
         });
 }
@@ -271,8 +330,7 @@ function renderForecast() {
         const dateLabel = document.createElement("p");
         dateLabel.className = "forecast-date";
         dateLabel.textContent = formatDate(`${day.date}T12:00:00`, {
-            weekday: undefined,
-            year: undefined
+            weekday: undefined
         });
 
         const icon = document.createElement("img");
@@ -335,6 +393,7 @@ function createInsight(icon, title, description) {
     descriptionElement.textContent = description;
 
     card.append(iconElement, titleElement, descriptionElement);
+
     return card;
 }
 
@@ -349,18 +408,23 @@ function renderInsights() {
     const temp = latestWeather.main.temp;
     const humidityValue = latestWeather.main.humidity;
     const windSpeed = latestWeather.wind?.speed ?? 0;
-    const description = latestWeather.weather?.[0]?.description || "unavailable";
+    const description =
+        latestWeather.weather?.[0]?.description || "unavailable";
 
     let temperatureAdvice;
 
     if (temp >= 35) {
-        temperatureAdvice = "It is very hot. Drink water and limit prolonged time outdoors.";
+        temperatureAdvice =
+            "It is very hot. Drink water and limit prolonged outdoor activity.";
     } else if (temp >= 28) {
-        temperatureAdvice = "It is warm. Light clothing and water can help you stay comfortable.";
+        temperatureAdvice =
+            "It is warm. Light clothing and water can help you stay comfortable.";
     } else if (temp <= 10) {
-        temperatureAdvice = "It is cold. Consider a warm layer before heading out.";
+        temperatureAdvice =
+            "It is cold. Consider a warm layer before heading out.";
     } else {
-        temperatureAdvice = "Conditions look moderate. Dress comfortably for the weather.";
+        temperatureAdvice =
+            "Conditions look moderate. Dress comfortably for the weather.";
     }
 
     insightsGrid.appendChild(
@@ -372,7 +436,8 @@ function renderInsights() {
     if (humidityValue >= 75) {
         humidityAdvice = "Humidity is high, so it may feel muggy outside.";
     } else if (humidityValue <= 30) {
-        humidityAdvice = "The air is relatively dry. Consider drinking water regularly.";
+        humidityAdvice =
+            "The air is relatively dry. Remember to drink water regularly.";
     } else {
         humidityAdvice = "Humidity is in a moderate range.";
     }
@@ -384,7 +449,8 @@ function renderInsights() {
     let windAdvice;
 
     if (windSpeed >= 10) {
-        windAdvice = "Winds are strong. Take extra care with outdoor activities.";
+        windAdvice =
+            "Winds are strong. Take extra care with outdoor activities.";
     } else if (windSpeed >= 5) {
         windAdvice = "There is a noticeable breeze outdoors.";
     } else {
@@ -398,13 +464,16 @@ function renderInsights() {
     let forecastAdvice;
 
     if (latestForecast && forecastDays.length) {
-        const rainExpected = forecastDays.some(day => day.rainChance >= 40);
+        const rainExpected = forecastDays.some(
+            day => day.rainChance >= 40
+        );
 
         forecastAdvice = rainExpected
             ? "Rain is possible during the forecast period. Check conditions before heading out."
-            : `The current condition is ${description}. No high rain probability was found in the available forecast intervals.`;
+            : `Current conditions are ${description}. The available forecast shows no high rain probability.`;
     } else {
-        forecastAdvice = `Current conditions: ${description}. The forecast is unavailable right now.`;
+        forecastAdvice =
+            `Current conditions are ${description}. The forecast is unavailable right now.`;
     }
 
     insightsGrid.appendChild(
@@ -436,7 +505,187 @@ function getApiErrorMessage(error) {
     return "We couldn't load weather for that location. Please try again.";
 }
 
-async function loadWeatherForQuery(query, requestId, mode, city = "", coordinates = null) {
+/* Recent searches */
+
+function addRecentCity(city) {
+    if (!city || !city.trim()) {
+        return;
+    }
+
+    recentCities = [
+        city.trim(),
+        ...recentCities.filter(
+            item => item.toLowerCase() !== city.trim().toLowerCase()
+        )
+    ].slice(0, MAX_RECENT_CITIES);
+
+    saveCities(RECENT_STORAGE_KEY, recentCities);
+    renderSavedCities();
+}
+
+function removeRecentCity(city) {
+    recentCities = recentCities.filter(
+        item => item.toLowerCase() !== city.toLowerCase()
+    );
+
+    saveCities(RECENT_STORAGE_KEY, recentCities);
+    renderSavedCities();
+}
+
+function clearRecentCities() {
+    recentCities = [];
+    saveCities(RECENT_STORAGE_KEY, recentCities);
+    renderSavedCities();
+}
+
+/* Favourite cities */
+
+function isFavourite(city) {
+    return favouriteCities.some(
+        item => item.toLowerCase() === city.toLowerCase()
+    );
+}
+
+function toggleFavourite(city) {
+    if (!city || !city.trim()) {
+        return;
+    }
+
+    const cleanedCity = city.trim();
+
+    if (isFavourite(cleanedCity)) {
+        favouriteCities = favouriteCities.filter(
+            item => item.toLowerCase() !== cleanedCity.toLowerCase()
+        );
+    } else {
+        favouriteCities = [cleanedCity, ...favouriteCities];
+    }
+
+    saveCities(FAVOURITES_STORAGE_KEY, favouriteCities);
+    renderSavedCities();
+    updateFavouriteButton();
+}
+
+function removeFavouriteCity(city) {
+    favouriteCities = favouriteCities.filter(
+        item => item.toLowerCase() !== city.toLowerCase()
+    );
+
+    saveCities(FAVOURITES_STORAGE_KEY, favouriteCities);
+    renderSavedCities();
+    updateFavouriteButton();
+}
+
+function updateFavouriteButton() {
+    if (!latestWeather) {
+        favouriteBtn.disabled = true;
+        favouriteBtn.classList.remove("is-favourite");
+        favouriteBtn.setAttribute("aria-pressed", "false");
+        favouriteIcon.textContent = "☆";
+        favouriteBtnText.textContent = "Add favourite";
+        return;
+    }
+
+    const currentCity = latestWeather.name || "";
+
+    favouriteBtn.disabled = !currentCity;
+
+    const saved = currentCity && isFavourite(currentCity);
+
+    favouriteBtn.classList.toggle("is-favourite", Boolean(saved));
+    favouriteBtn.setAttribute("aria-pressed", String(Boolean(saved)));
+    favouriteIcon.textContent = saved ? "★" : "☆";
+    favouriteBtnText.textContent = saved ? "Favourited" : "Add favourite";
+    favouriteBtn.title = saved
+        ? "Remove this city from favourites"
+        : "Add this city to favourites";
+}
+
+function createCityChip(city, isFavouriteChip = false) {
+    const chip = document.createElement("div");
+    chip.className = "city-chip";
+
+    const openButton = document.createElement("button");
+    openButton.type = "button";
+    openButton.className = "chip-open";
+    openButton.textContent = city;
+    openButton.title = `Show weather for ${city}`;
+    openButton.setAttribute("aria-label", `Show weather for ${city}`);
+    openButton.style.cssText =
+        "padding:0;border:0;color:inherit;background:transparent;cursor:pointer;";
+
+    openButton.addEventListener("click", () => {
+        cityInput.value = city;
+        handleSearch(city);
+    });
+
+    const removeButton = document.createElement("button");
+    removeButton.type = "button";
+    removeButton.className = "chip-remove";
+    removeButton.textContent = "×";
+    removeButton.setAttribute(
+        "aria-label",
+        `Remove ${city} from ${isFavouriteChip ? "favourites" : "recent searches"}`
+    );
+    removeButton.title = "Remove city";
+
+    removeButton.addEventListener("click", () => {
+        if (isFavouriteChip) {
+            removeFavouriteCity(city);
+        } else {
+            removeRecentCity(city);
+        }
+    });
+
+    chip.append(openButton, removeButton);
+    return chip;
+}
+
+function renderCityList(container, cities, emptyMessage, isFavouriteChip = false) {
+    container.replaceChildren();
+
+    if (!cities.length) {
+        const empty = document.createElement("p");
+        empty.className = "saved-empty";
+        empty.textContent = emptyMessage;
+        container.appendChild(empty);
+        return;
+    }
+
+    cities.forEach(city => {
+        container.appendChild(createCityChip(city, isFavouriteChip));
+    });
+}
+
+function renderSavedCities() {
+    renderCityList(
+        recentCitiesContainer,
+        recentCities,
+        "Your recent cities will appear here."
+    );
+
+    renderCityList(
+        favouriteCitiesContainer,
+        favouriteCities,
+        "Star a city to save it here.",
+        true
+    );
+
+    clearRecentBtn.disabled = recentCities.length === 0;
+    clearRecentBtn.title = recentCities.length
+        ? "Clear all recent searches"
+        : "No recent searches to clear";
+}
+
+/* Weather loading */
+
+async function loadWeatherForQuery(
+    query,
+    requestId,
+    mode,
+    city = "",
+    coordinates = null
+) {
     showLoading();
     clearError();
 
@@ -449,8 +698,11 @@ async function loadWeatherForQuery(query, requestId, mode, city = "", coordinate
     forecastNote.hidden = true;
 
     try {
-        const currentUrl = `${CURRENT_WEATHER_URL}?${query}&appid=${API_KEY}&units=metric`;
-        const forecastUrl = `${FORECAST_URL}?${query}&appid=${API_KEY}&units=metric`;
+        const currentUrl =
+            `${CURRENT_WEATHER_URL}?${query}&appid=${API_KEY}&units=metric`;
+
+        const forecastUrl =
+            `${FORECAST_URL}?${query}&appid=${API_KEY}&units=metric`;
 
         const [currentResult, forecastResult] = await Promise.allSettled([
             fetchWeatherData(currentUrl),
@@ -477,8 +729,12 @@ async function loadWeatherForQuery(query, requestId, mode, city = "", coordinate
             cityInput.value = currentData.name || "";
         }
 
+        // Save the successfully resolved city name, not unverified input.
+        addRecentCity(currentData.name || city);
+
         forecastSection.hidden = false;
-        forecastLocation.textContent = `${currentData.name || "Selected location"} forecast`;
+        forecastLocation.textContent =
+            `${currentData.name || "Selected location"} forecast`;
 
         if (forecastResult.status === "fulfilled") {
             latestForecast = forecastResult.value;
@@ -536,12 +792,17 @@ async function handleSearch(cityOverride = "") {
     }
 
     const requestId = ++searchRequestId;
-
     resetLocationButton();
 
     const query = `q=${encodeURIComponent(city)}`;
 
-    await loadWeatherForQuery(query, requestId, "city", city, null);
+    await loadWeatherForQuery(
+        query,
+        requestId,
+        "city",
+        city,
+        null
+    );
 }
 
 function handleLocationSearch() {
@@ -577,10 +838,8 @@ function handleLocationSearch() {
             const latitude = position.coords.latitude;
             const longitude = position.coords.longitude;
 
-            const query = `lat=${latitude}&lon=${longitude}`;
-
             await loadWeatherForQuery(
-                query,
+                `lat=${latitude}&lon=${longitude}`,
                 requestId,
                 "location",
                 "",
@@ -619,7 +878,8 @@ function refreshLastSearch() {
         const requestId = ++searchRequestId;
         resetLocationButton();
 
-        const query = `lat=${lastCoordinates.latitude}&lon=${lastCoordinates.longitude}`;
+        const query =
+            `lat=${lastCoordinates.latitude}&lon=${lastCoordinates.longitude}`;
 
         loadWeatherForQuery(
             query,
@@ -645,6 +905,8 @@ function refreshLastSearch() {
     showError("Search for a city or use your location before refreshing.");
 }
 
+/* Event listeners */
+
 weatherForm.addEventListener("submit", event => {
     event.preventDefault();
     handleSearch();
@@ -664,4 +926,14 @@ fahrenheitBtn.addEventListener("click", () => {
     updateUnitButtons();
 });
 
+favouriteBtn.addEventListener("click", () => {
+    if (latestWeather?.name) {
+        toggleFavourite(latestWeather.name);
+    }
+});
+
+clearRecentBtn.addEventListener("click", clearRecentCities);
+
+renderSavedCities();
+updateFavouriteButton();
 setInterval(updateClock, 30000);
