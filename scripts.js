@@ -1,6 +1,6 @@
 // ========================================
 // ClimateX — Weather Intelligence
-// Step 14: Five-day weather forecast
+// Reliability improvements + weather insights
 // ========================================
 
 const API_URL = "https://api.openweathermap.org/data/2.5/weather";
@@ -30,7 +30,7 @@ const feelsLike = document.getElementById("feelsLike");
 const wind = document.getElementById("wind");
 const weatherIcon = document.getElementById("weatherIcon");
 
-// Temperature unit buttons
+// Temperature toggle elements
 const celsiusBtn = document.getElementById("celsiusBtn");
 const fahrenheitBtn = document.getElementById("fahrenheitBtn");
 
@@ -38,6 +38,13 @@ const fahrenheitBtn = document.getElementById("fahrenheitBtn");
 const forecastSection = document.getElementById("forecastSection");
 const forecastGrid = document.getElementById("forecastGrid");
 const forecastLocation = document.getElementById("forecastLocation");
+const forecastLoading = document.getElementById("forecastLoading");
+const forecastError = document.getElementById("forecastError");
+const forecastNote = document.getElementById("forecastNote");
+
+// Insights elements
+const insightsSection = document.getElementById("insightsSection");
+const insightsGrid = document.getElementById("insightsGrid");
 
 // Application state
 let lastSearchedCity = "";
@@ -45,8 +52,14 @@ let currentTempCelsius = null;
 let feelsLikeCelsius = null;
 let currentUnit = "C";
 let forecastDays = [];
+let latestWeather = null;
+let latestForecast = null;
+let searchRequestId = 0;
 
-// Error display
+// ----------------------------------------
+// Errors and loading
+// ----------------------------------------
+
 function showError(message) {
     errorMessage.textContent = message;
     errorMessage.hidden = false;
@@ -57,7 +70,6 @@ function clearError() {
     errorMessage.hidden = true;
 }
 
-// Loading state
 function showLoading() {
     loading.hidden = false;
     searchBtn.disabled = true;
@@ -70,15 +82,25 @@ function hideLoading() {
     searchBtn.innerHTML = 'Search <span aria-hidden="true">→</span>';
 }
 
-// City validation
+function showForecastError(message) {
+    forecastError.textContent = message;
+    forecastError.hidden = false;
+}
+
+function clearForecastError() {
+    forecastError.textContent = "";
+    forecastError.hidden = true;
+}
+
+// ----------------------------------------
+// Validation and date/time
+// ----------------------------------------
+
 function isValidCity(city) {
     return /^[a-zA-ZÀ-ÿ\s.'-]+$/.test(city);
 }
 
-// Live date and time
 function updateDateTime() {
-    if (!currentDateTime) return;
-
     currentDateTime.textContent = new Date().toLocaleString("en-IN", {
         weekday: "long",
         day: "numeric",
@@ -90,7 +112,10 @@ function updateDateTime() {
     });
 }
 
+// ----------------------------------------
 // Temperature conversion
+// ----------------------------------------
+
 function toFahrenheit(celsius) {
     return (celsius * 9 / 5) + 32;
 }
@@ -115,6 +140,7 @@ function updateToggleButtons() {
 
 function renderTemperatures() {
     if (currentTempCelsius === null || feelsLikeCelsius === null) {
+        updateToggleButtons();
         return;
     }
 
@@ -124,17 +150,24 @@ function renderTemperatures() {
             : toFahrenheit(currentTempCelsius)
     );
 
-    temperatureUnit.textContent = currentUnit === "C" ? "°C" : "°F";
+    const unit = currentUnit === "C" ? "°C" : "°F";
+    temperatureUnit.textContent = unit;
 
-    feelsLike.textContent =
-        `${Math.round(currentUnit === "C" ? feelsLikeCelsius : toFahrenheit(feelsLikeCelsius))}` +
-        (currentUnit === "C" ? "°C" : "°F");
+    const feelsLikeValue = currentUnit === "C"
+        ? feelsLikeCelsius
+        : toFahrenheit(feelsLikeCelsius);
+
+    feelsLike.textContent = `${Math.round(feelsLikeValue)}${unit}`;
 
     updateToggleButtons();
     renderForecast();
+    renderInsights();
 }
 
-// Fetch JSON with clearer network and HTTP error handling
+// ----------------------------------------
+// API helper
+// ----------------------------------------
+
 async function fetchJSON(url) {
     let response;
 
@@ -157,7 +190,7 @@ async function fetchJSON(url) {
     if (!response.ok) {
         if (response.status === 401) {
             throw new Error(
-                "OpenWeatherMap rejected the API key. Check that it is active and authorized for the forecast endpoint."
+                "OpenWeatherMap rejected the API key. Check that it is active and authorized for this endpoint."
             );
         }
 
@@ -175,7 +208,10 @@ async function fetchJSON(url) {
     return data;
 }
 
-// Fetch current weather and forecast
+// ----------------------------------------
+// Search current weather and forecast
+// ----------------------------------------
+
 async function handleSearch(cityOverride = "") {
     const city = (cityOverride || cityInput.value).trim();
 
@@ -202,24 +238,61 @@ async function handleSearch(cityOverride = "") {
         return;
     }
 
+    const requestId = ++searchRequestId;
+
     showLoading();
-    weatherCard.hidden = true;
+    clearForecastError();
+    forecastLoading.hidden = true;
+    forecastGrid.replaceChildren();
     forecastSection.hidden = true;
+    insightsSection.hidden = true;
     emptyState.hidden = true;
 
+    // Current weather and forecast are requested independently.
+    // A forecast failure will not hide successfully loaded current weather.
+    const query =
+        `q=${encodeURIComponent(city)}&appid=${API_KEY}&units=metric`;
+
+    const currentPromise = fetchJSON(`${API_URL}?${query}`);
+    const forecastPromise = fetchJSON(`${FORECAST_URL}?${query}`);
+
+    forecastLoading.hidden = false;
+
+    const [currentResult, forecastResult] = await Promise.allSettled([
+        currentPromise,
+        forecastPromise
+    ]);
+
+    // Ignore older searches if the user submitted another city meanwhile.
+    if (requestId !== searchRequestId) {
+        return;
+    }
+
     try {
-        const query = `q=${encodeURIComponent(city)}&appid=${API_KEY}&units=metric`;
+        if (currentResult.status === "rejected") {
+            throw currentResult.reason;
+        }
 
-        // Request both endpoints together
-        const [currentData, forecastData] = await Promise.all([
-            fetchJSON(`${API_URL}?${query}`),
-            fetchJSON(`${FORECAST_URL}?${query}`)
-        ]);
-
-        displayWeather(currentData);
-        prepareForecast(forecastData);
-
+        latestWeather = currentResult.value;
+        displayWeather(latestWeather);
         lastSearchedCity = city;
+
+        if (forecastResult.status === "fulfilled") {
+            latestForecast = forecastResult.value;
+            prepareForecast(latestForecast);
+        } else {
+            latestForecast = null;
+            forecastDays = [];
+            renderForecast();
+
+            forecastSection.hidden = false;
+            showForecastError(
+                `Current weather loaded, but the forecast is unavailable: ${forecastResult.reason.message}`
+            );
+        }
+
+        // Insights remain available when current weather succeeds.
+        renderInsights();
 
     } catch (error) {
         console.error("ClimateX weather request failed:", error);
@@ -228,14 +301,21 @@ async function handleSearch(cityOverride = "") {
 
         weatherCard.hidden = true;
         forecastSection.hidden = true;
+        insightsSection.hidden = true;
         emptyState.hidden = false;
 
     } finally {
-        hideLoading();
+        if (requestId === searchRequestId) {
+            hideLoading();
+            forecastLoading.hidden = true;
+        }
     }
 }
 
+// ----------------------------------------
 // Display current weather
+// ----------------------------------------
+
 function displayWeather(data) {
     cityName.textContent = data.name;
     countryName.textContent = data.sys.country;
@@ -249,28 +329,33 @@ function displayWeather(data) {
 
     weatherIcon.src =
         `https://openweathermap.org/img/wn/${data.weather[0].icon}@2x.png`;
+
     weatherIcon.alt = data.weather[0].description;
 
     updateDateTime();
-    renderTemperatures();
 
     weatherCard.hidden = false;
     emptyState.hidden = true;
+
+    renderTemperatures();
 }
 
-// Get the forecast's local date using its UTC timestamp and city timezone offset
+// ----------------------------------------
+// Prepare daily forecast
+// ----------------------------------------
+
 function getLocalForecastDate(timestamp, timezoneOffset) {
-    const localTimestamp = (timestamp + timezoneOffset) * 1000;
-    return new Date(localTimestamp).toISOString().slice(0, 10);
+    return new Date(
+        (timestamp + timezoneOffset) * 1000
+    ).toISOString().slice(0, 10);
 }
 
-// Get a local hour for a forecast interval
 function getLocalForecastHour(timestamp, timezoneOffset) {
-    const localTimestamp = (timestamp + timezoneOffset) * 1000;
-    return new Date(localTimestamp).getUTCHours();
+    return new Date(
+        (timestamp + timezoneOffset) * 1000
+    ).getUTCHours();
 }
 
-// Prepare daily forecast data from three-hour intervals
 function prepareForecast(data) {
     const timezoneOffset = data.city.timezone;
     const groupedDays = new Map();
@@ -283,10 +368,7 @@ function prepareForecast(data) {
             groupedDays.set(dateKey, []);
         }
 
-        groupedDays.get(dateKey).push({
-            item,
-            localHour
-        });
+        groupedDays.get(dateKey).push({ item, localHour });
     }
 
     const todayKey = getLocalForecastDate(
@@ -297,29 +379,37 @@ function prepareForecast(data) {
     forecastDays = [];
 
     for (const [dateKey, entries] of groupedDays.entries()) {
-        // Exclude today's partial forecast to show the next five calendar days
-        if (dateKey <= todayKey) continue;
+        // Include today if forecast intervals remain; then show upcoming days.
+        if (dateKey < todayKey) continue;
 
-        const temps = entries.map(entry => entry.item.main.temp);
-        const high = Math.max(...temps);
-        const low = Math.min(...temps);
+        const temperatures = entries.map(entry => entry.item.main.temp);
+        const high = Math.max(...temperatures);
+        const low = Math.min(...temperatures);
 
-        // Prefer an interval close to midday for representative conditions
         const daytimeEntries = entries.filter(
             entry => entry.localHour >= 11 && entry.localHour <= 15
         );
 
-        const candidates = daytimeEntries.length ? daytimeEntries : entries;
-        const representative = candidates.reduce((best, current) => {
-            const bestDistance = Math.abs(best.localHour - 12);
-            const currentDistance = Math.abs(current.localHour - 12);
+        const candidates = daytimeEntries.length
+            ? daytimeEntries
+            : entries;
 
-            return currentDistance < bestDistance ? current : best;
+        const representative = candidates.reduce((best, current) => {
+            return Math.abs(current.localHour - 12) <
+                Math.abs(best.localHour - 12)
+                ? current
+                : best;
         });
 
         const averageHumidity = Math.round(
-            entries.reduce((sum, entry) => sum + entry.item.main.humidity, 0) /
-            entries.length
+            entries.reduce(
+                (sum, entry) => sum + entry.item.main.humidity,
+                0
+            ) / entries.length
+        );
+
+        const maxRainProbability = Math.max(
+            ...entries.map(entry => entry.item.pop || 0)
         );
 
         forecastDays.push({
@@ -327,20 +417,32 @@ function prepareForecast(data) {
             high,
             low,
             humidity: averageHumidity,
+            rainProbability: maxRainProbability,
             condition: representative.item.weather[0].description,
+            main: representative.item.weather[0].main,
             icon: representative.item.weather[0].icon
         });
 
         if (forecastDays.length === 5) break;
     }
 
-    forecastLocation.textContent = `${data.city.name}, ${data.city.country}`;
+    forecastLocation.textContent =
+        `${data.city.name}, ${data.city.country}`;
+
+    clearForecastError();
     renderForecast();
 
     forecastSection.hidden = forecastDays.length === 0;
+
+    if (forecastDays.length === 0) {
+        showForecastError("No daily forecast intervals were returned.");
+    }
 }
 
-// Display forecast cards safely
+// ----------------------------------------
+// Render forecast cards
+// ----------------------------------------
+
 function renderForecast() {
     forecastGrid.replaceChildren();
 
@@ -363,7 +465,13 @@ function renderForecast() {
 
         const heading = document.createElement("h3");
         heading.className = "forecast-day";
-        heading.textContent = index === 0 ? "Tomorrow" : dayName;
+        heading.textContent = index === 0 &&
+            day.date === getLocalForecastDate(
+                Math.floor(Date.now() / 1000),
+                latestForecast?.city?.timezone || 0
+            )
+            ? "Today"
+            : dayName;
 
         const dateElement = document.createElement("p");
         dateElement.className = "forecast-date";
@@ -396,20 +504,170 @@ function renderForecast() {
         humidityElement.className = "forecast-humidity";
         humidityElement.textContent = `💧 ${day.humidity}%`;
 
+        const rainElement = document.createElement("p");
+        rainElement.className = "forecast-date";
+        rainElement.textContent =
+            `Rain chance: ${Math.round(day.rainProbability * 100)}%`;
+
         card.append(
             heading,
             dateElement,
             icon,
             description,
             temperatures,
-            humidityElement
+            humidityElement,
+            rainElement
         );
 
         forecastGrid.appendChild(card);
     });
 }
 
-// Temperature unit events
+// ----------------------------------------
+// Weather insights
+// ----------------------------------------
+
+function buildInsights(data, forecastData) {
+    const temp = data.main.temp;
+    const humidityValue = data.main.humidity;
+    const windSpeed = data.wind.speed;
+    const weatherMain = data.weather[0].main.toLowerCase();
+    const weatherDescription = data.weather[0].description.toLowerCase();
+
+    const insights = [];
+
+    const forecastHasRain = forecastDays.some(day =>
+        ["rain", "drizzle", "thunderstorm"].includes(day.main.toLowerCase()) ||
+        day.rainProbability >= 0.45
+    );
+
+    const currentHasRain =
+        ["rain", "drizzle", "thunderstorm"].includes(weatherMain) ||
+        weatherDescription.includes("rain") ||
+        weatherDescription.includes("thunder");
+
+    if (currentHasRain || forecastHasRain) {
+        insights.push({
+            icon: "☔",
+            title: "Rain preparedness",
+            description: currentHasRain
+                ? "Rain-related conditions are reported now. Consider carrying an umbrella and allowing extra travel time."
+                : "Rain is possible in the forecast. Check conditions before heading outdoors and consider carrying an umbrella."
+        });
+    }
+
+    if (temp >= 32) {
+        insights.push({
+            icon: "☀️",
+            title: "High temperature",
+            description: "It is hot outside. Drink water regularly, seek shade when possible, and limit strenuous outdoor activity during the hottest hours."
+        });
+    } else if (temp <= 10) {
+        insights.push({
+            icon: "🧥",
+            title: "Cool conditions",
+            description: "Consider wearing an extra layer outdoors, particularly during the morning and evening."
+        });
+    } else {
+        insights.push({
+            icon: "🌤️",
+            title: "Outdoor planning",
+            description: `Current conditions are ${data.weather[0].description}. Check the forecast before planning longer outdoor activities.`
+        });
+    }
+
+    if (humidityValue >= 75) {
+        insights.push({
+            icon: "💧",
+            title: "High humidity",
+            description: "The air is humid, which can make warm conditions feel more uncomfortable. Take breaks and drink water during physical activity."
+        });
+    } else if (humidityValue <= 30) {
+        insights.push({
+            icon: "🌬️",
+            title: "Low humidity",
+            description: "Humidity is low. Drink water regularly if you spend time outdoors, especially in warm or windy conditions."
+        });
+    }
+
+    if (windSpeed >= 8) {
+        insights.push({
+            icon: "💨",
+            title: "Strong winds",
+            description: "Winds are relatively strong. Take care around exposed areas and secure lightweight outdoor objects."
+        });
+    }
+
+    if (
+        !currentHasRain &&
+        forecastDays.length > 0 &&
+        !forecastHasRain &&
+        temp >= 10 &&
+        temp < 32 &&
+        humidityValue > 30 &&
+        humidityValue < 75 &&
+        windSpeed < 8
+    ) {
+        insights.push({
+            icon: "🗓️",
+            title: "Plan ahead",
+            description: "No strong rain signal appears in the available forecast. Conditions can change, so check again before travelling."
+        });
+    }
+
+    return insights.slice(0, 4);
+}
+
+function renderInsights() {
+    insightsGrid.replaceChildren();
+
+    if (!latestWeather) {
+        insightsSection.hidden = true;
+        return;
+    }
+
+    const insights = buildInsights(latestWeather, latestForecast);
+
+    insights.forEach(insight => {
+        const card = document.createElement("article");
+        card.className = "insight-card";
+
+        const icon = document.createElement("div");
+        icon.className = "insight-icon";
+        icon.setAttribute("aria-hidden", "true");
+        icon.textContent = insight.icon;
+
+        const content = document.createElement("div");
+
+        const title = document.createElement("h3");
+        title.className = "insight-title";
+        title.textContent = insight.title;
+
+        const description = document.createElement("p");
+        description.className = "insight-description";
+        description.textContent = insight.description;
+
+        content.append(title, description);
+        card.append(icon, content);
+        insightsGrid.appendChild(card);
+    });
+
+    insightsSection.hidden = false;
+}
+
+// ----------------------------------------
+// Event listeners
+// ----------------------------------------
+
+weatherForm.addEventListener("submit", event => {
+    event.preventDefault();
+    handleSearch();
+});
+
+refreshBtn.addEventListener("click", () => {
+    handleSearch(lastSearchedCity || cityInput.value);
+});
+
 celsiusBtn.addEventListener("click", () => {
     currentUnit = "C";
     renderTemperatures();
@@ -420,18 +678,7 @@ fahrenheitBtn.addEventListener("click", () => {
     renderTemperatures();
 });
 
-// Search form event
-weatherForm.addEventListener("submit", event => {
-    event.preventDefault();
-    handleSearch();
-});
-
-// Refresh current city and forecast
-refreshBtn.addEventListener("click", () => {
-    handleSearch(lastSearchedCity || cityInput.value);
-});
-
-// Initialize interface
+// Initialize
 updateDateTime();
 updateToggleButtons();
 setInterval(updateDateTime, 60000);

@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="theme-color" content="#101827">
-    <meta name="description" content="ClimateX — Current weather and five-day forecasts for cities around the world.">
+    <meta name="description" content="ClimateX provides current weather, five-day forecasts, and personalized weather insights.">
     <title>ClimateX | Weather Intelligence</title>
     <link rel="stylesheet" href="style.css">
 </head>
@@ -31,7 +31,8 @@
             <p class="eyebrow">YOUR WORLD, YOUR WEATHER</p>
             <h1>Understand the <span>Atmosphere.</span></h1>
             <p class="hero-description">
-                Discover current conditions and the forecast for the next five days.
+                Explore current conditions, plan for the next five days,
+                and get useful insights for your day.
             </p>
         </section>
 
@@ -99,6 +100,7 @@
                         <p id="humidity" class="detail-value">--%</p>
                     </div>
                 </article>
+
                 <article class="detail-item">
                     <div class="detail-icon" aria-hidden="true">🌡️</div>
                     <div>
@@ -106,6 +108,7 @@
                         <p id="feelsLike" class="detail-value">--°C</p>
                     </div>
                 </article>
+
                 <article class="detail-item">
                     <div class="detail-icon" aria-hidden="true">💨</div>
                     <div>
@@ -120,6 +123,27 @@
             </button>
         </section>
 
+        <!-- Weather insights -->
+        <section id="insightsSection" class="insights-section" aria-label="Weather insights" hidden>
+            <div class="section-heading">
+                <div>
+                    <p class="eyebrow">SMART RECOMMENDATIONS</p>
+                    <h2>Weather Insights</h2>
+                </div>
+            </div>
+
+            <p class="insights-intro">
+                Helpful suggestions based on the weather conditions.
+            </p>
+
+            <div id="insightsGrid" class="insights-grid"></div>
+
+            <p class="insights-disclaimer">
+                Suggestions are general guidance based on available weather data.
+            </p>
+        </section>
+
+        <!-- Five-day forecast -->
         <section id="forecastSection" class="forecast-section" aria-label="Five-day forecast" hidden>
             <div class="section-heading">
                 <div>
@@ -129,17 +153,23 @@
                 <p class="forecast-location" id="forecastLocation"></p>
             </div>
 
+            <div id="forecastLoading" class="forecast-loading" hidden>
+                <div class="spinner"></div>
+                <p>Loading forecast...</p>
+            </div>
+
+            <div id="forecastError" class="forecast-error" role="status" hidden></div>
             <div id="forecastGrid" class="forecast-grid"></div>
 
-            <p class="forecast-note">
-                Daily temperatures are estimated from three-hour forecast intervals.
+            <p id="forecastNote" class="forecast-note">
+                Daily highs and lows are estimated from three-hour forecast intervals.
             </p>
         </section>
 
         <section id="emptyState" class="empty-state">
             <div class="empty-icon" aria-hidden="true">☁</div>
             <h2>Your weather journey starts here.</h2>
-            <p>Enter a city above to discover its current weather and five-day forecast.</p>
+            <p>Enter a city above to discover its weather and forecast.</p>
         </section>
     </main>
 

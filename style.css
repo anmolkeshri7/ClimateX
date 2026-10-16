@@ -1,6 +1,6 @@
 /* ========================================
    ClimateX — Weather Intelligence
-   Step 14: Five-day forecast
+   Combined Steps 1 and 2
 ======================================== */
 
 :root {
@@ -43,7 +43,11 @@ body {
     inset: 0;
     z-index: -1;
     pointer-events: none;
-    background: radial-gradient(circle at 50% 30%, rgba(65, 158, 210, 0.12), transparent 60%);
+    background: radial-gradient(
+        circle at 50% 30%,
+        rgba(65, 158, 210, 0.12),
+        transparent 60%
+    );
 }
 
 /* Header */
@@ -106,7 +110,7 @@ body {
     box-shadow: 0 0 10px rgba(115, 230, 178, 0.7);
 }
 
-/* Main content and hero */
+/* Main content */
 
 .main-content {
     width: min(1000px, 90%);
@@ -232,7 +236,8 @@ body {
 
 /* Loading and errors */
 
-.loading {
+.loading,
+.forecast-loading {
     display: flex;
     align-items: center;
     justify-content: center;
@@ -250,7 +255,8 @@ body {
     animation: spin 0.8s linear infinite;
 }
 
-.error-message {
+.error-message,
+.forecast-error {
     width: min(650px, 100%);
     margin: 20px auto;
     padding: 15px 18px;
@@ -259,6 +265,11 @@ body {
     background: rgba(130, 33, 42, 0.25);
     color: #ffd0d0;
     line-height: 1.6;
+}
+
+.forecast-error {
+    width: 100%;
+    margin: 0 0 18px;
 }
 
 /* Current weather card */
@@ -326,7 +337,7 @@ body {
     animation: floatIcon 3s ease-in-out infinite;
 }
 
-/* Temperature and unit toggle */
+/* Temperature and units */
 
 .temperature-section {
     padding: 24px 0 28px;
@@ -406,7 +417,7 @@ body {
     margin-top: 6px;
 }
 
-/* Weather detail cards */
+/* Weather details */
 
 .weather-details {
     display: grid;
@@ -466,12 +477,7 @@ body {
     font-size: 1.1rem;
 }
 
-/* Five-day forecast */
-
-.forecast-section {
-    margin: 40px auto;
-    animation: fadeUp 0.5s ease both;
-}
+/* Shared section headings */
 
 .section-heading {
     display: flex;
@@ -487,6 +493,82 @@ body {
 
 .section-heading h2 {
     font-size: clamp(1.5rem, 4vw, 2rem);
+}
+
+/* Weather insights */
+
+.insights-section {
+    margin: 40px auto;
+    animation: fadeUp 0.5s ease both;
+}
+
+.insights-intro {
+    margin-top: -7px;
+    margin-bottom: 20px;
+    color: var(--text-secondary);
+    font-size: 0.92rem;
+    line-height: 1.7;
+}
+
+.insights-grid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 14px;
+}
+
+.insight-card {
+    display: flex;
+    align-items: flex-start;
+    gap: 14px;
+    padding: 19px;
+    border: 1px solid var(--glass-border);
+    border-radius: 18px;
+    background: var(--glass);
+    backdrop-filter: blur(14px);
+    transition: transform 0.2s, border-color 0.2s;
+}
+
+.insight-card:hover {
+    transform: translateY(-3px);
+    border-color: rgba(98, 217, 255, 0.45);
+}
+
+.insight-icon {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    width: 44px;
+    height: 44px;
+    border-radius: 13px;
+    background: rgba(98, 217, 255, 0.1);
+    font-size: 1.45rem;
+}
+
+.insight-title {
+    margin-bottom: 7px;
+    font-size: 0.98rem;
+    font-weight: 750;
+}
+
+.insight-description {
+    color: var(--text-secondary);
+    font-size: 0.86rem;
+    line-height: 1.65;
+}
+
+.insights-disclaimer {
+    margin-top: 15px;
+    color: var(--text-secondary);
+    font-size: 0.77rem;
+    line-height: 1.6;
+}
+
+/* Five-day forecast */
+
+.forecast-section {
+    margin: 40px auto;
+    animation: fadeUp 0.5s ease both;
 }
 
 .forecast-location {
@@ -510,17 +592,15 @@ body {
     box-shadow: 0 14px 35px rgba(0, 0, 0, 0.12);
     backdrop-filter: blur(14px);
     text-align: center;
-    transition: transform 0.22s, border-color 0.22s, background 0.22s;
+    transition: transform 0.22s, border-color 0.22s;
 }
 
 .forecast-card:hover {
     transform: translateY(-4px);
     border-color: rgba(98, 217, 255, 0.5);
-    background: rgba(25, 42, 65, 0.9);
 }
 
 .forecast-day {
-    color: var(--text-primary);
     font-size: 0.91rem;
     font-weight: 750;
 }
@@ -579,7 +659,7 @@ body {
     line-height: 1.6;
 }
 
-/* Empty state */
+/* Empty state and footer */
 
 .empty-state {
     margin: 45px auto 30px;
@@ -602,8 +682,6 @@ body {
     color: var(--text-secondary);
     line-height: 1.7;
 }
-
-/* Footer */
 
 .footer {
     width: min(1160px, 90%);
@@ -639,9 +717,7 @@ input:focus-visible {
 /* Animations */
 
 @keyframes spin {
-    to {
-        transform: rotate(360deg);
-    }
+    to { transform: rotate(360deg); }
 }
 
 @keyframes fadeUp {
@@ -667,12 +743,8 @@ input:focus-visible {
 }
 
 @keyframes floatIcon {
-    0%, 100% {
-        transform: translateY(0);
-    }
-    50% {
-        transform: translateY(-6px);
-    }
+    0%, 100% { transform: translateY(0); }
+    50% { transform: translateY(-6px); }
 }
 
 /* Responsive design */
@@ -714,6 +786,10 @@ input:focus-visible {
 
     .forecast-card:last-child {
         grid-column: 1 / -1;
+    }
+
+    .insights-grid {
+        grid-template-columns: 1fr;
     }
 }
 
@@ -779,12 +855,16 @@ input:focus-visible {
     }
 
     .section-heading {
-        align-items: start;
+        align-items: flex-start;
         flex-direction: column;
     }
 
     .forecast-location {
         text-align: left;
+    }
+
+    .insight-card {
+        padding: 15px;
     }
 }
 
