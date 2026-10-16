@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="theme-color" content="#101827">
-    <meta name="description" content="ClimateX gives you current weather, a five-day forecast, and helpful weather insights.">
+    <meta name="description" content="ClimateX gives you current weather, hourly trends, a five-day forecast, and helpful weather insights.">
     <title>ClimateX | Weather Forecast</title>
     <link rel="stylesheet" href="style.css">
 </head>
@@ -23,7 +23,7 @@
                 <p class="eyebrow">WEATHER, MADE SIMPLE</p>
                 <h1>Understand the sky.<br><span>Plan your day.</span></h1>
                 <p class="hero-description">
-                    Get real-time weather, a five-day forecast, and insights for wherever life takes you.
+                    Get real-time weather, hourly trends, a five-day forecast, and insights for wherever life takes you.
                 </p>
             </section>
 
@@ -50,7 +50,7 @@
             </section>
 
             <section id="savedCitiesSection" class="saved-cities-section" aria-label="Saved cities">
-                <div class="saved-group" id="recentGroup">
+                <div class="saved-group">
                     <div class="saved-heading">
                         <h2><span aria-hidden="true">◷</span> Recent searches</h2>
                         <button type="button" id="clearRecentBtn" class="text-btn">Clear</button>
@@ -60,7 +60,7 @@
                     </div>
                 </div>
 
-                <div class="saved-group" id="favouritesGroup">
+                <div class="saved-group">
                     <div class="saved-heading">
                         <h2><span aria-hidden="true">★</span> Favourite cities</h2>
                     </div>
@@ -140,6 +140,31 @@
                     <p class="section-description">A little context for your day.</p>
                 </div>
                 <div id="insightsGrid" class="insights-grid"></div>
+            </section>
+
+            <section id="hourlySection" class="content-section" hidden>
+                <div class="section-heading">
+                    <div>
+                        <p class="section-kicker">THE NEXT 24 HOURS</p>
+                        <h2>Hourly Forecast</h2>
+                    </div>
+                    <p id="hourlyLocation" class="section-description"></p>
+                </div>
+
+                <div id="hourlyError" class="forecast-error" role="status" hidden></div>
+                <div id="hourlyGrid" class="hourly-grid"></div>
+
+                <div class="chart-panel">
+                    <div class="chart-heading">
+                        <div>
+                            <h3>Temperature trend</h3>
+                            <p>See how the temperature changes over the coming hours.</p>
+                        </div>
+                        <span id="chartUnitLabel" class="chart-unit-label">°C</span>
+                    </div>
+                    <div id="temperatureChart" class="temperature-chart" role="img" aria-label="Hourly temperature trend chart"></div>
+                    <p class="chart-footnote">Forecast estimates are shown at the intervals supplied by OpenWeather.</p>
+                </div>
             </section>
 
             <section id="forecastSection" class="content-section" hidden>

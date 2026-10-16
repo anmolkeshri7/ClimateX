@@ -220,7 +220,6 @@ button:disabled { cursor: not-allowed; opacity: 0.6; }
 }
 
 .text-btn:hover { color: var(--accent); }
-
 .city-chips { display: flex; flex-wrap: wrap; gap: 8px; }
 
 .city-chip {
@@ -241,14 +240,6 @@ button:disabled { cursor: not-allowed; opacity: 0.6; }
     background: color-mix(in srgb, var(--accent) 10%, transparent);
 }
 
-.city-chip-name {
-    overflow: hidden;
-    max-width: 180px;
-    text-overflow: ellipsis;
-    white-space: nowrap;
-    font-size: 0.82rem;
-}
-
 .chip-remove {
     display: inline-grid;
     width: 19px;
@@ -266,6 +257,8 @@ button:disabled { cursor: not-allowed; opacity: 0.6; }
 
 .chip-remove:hover { color: #fff; background: rgba(255, 100, 120, 0.55); }
 .saved-empty { margin: 0; color: var(--muted); font-size: 0.82rem; }
+
+/* Current weather */
 
 .glass-card {
     border: 1px solid var(--border);
@@ -432,6 +425,8 @@ button:disabled { cursor: not-allowed; opacity: 0.6; }
 .detail-label { margin: 0; color: var(--muted); font-size: 0.82rem; }
 .detail-value { margin: 3px 0 0; font-size: 1.1rem; font-weight: 750; }
 
+/* Sections and insight cards */
+
 .content-section { margin-top: 42px; animation: rise-in 0.55s ease both; }
 .section-heading { align-items: flex-end; margin-bottom: 18px; }
 .section-heading .section-description { margin: 0; font-size: 0.88rem; text-align: right; }
@@ -459,6 +454,124 @@ button:disabled { cursor: not-allowed; opacity: 0.6; }
 .insight-icon { font-size: 1.5rem; }
 .insight-card h3 { margin: 10px 0 5px; font-size: 0.98rem; }
 .insight-card p { margin: 0; color: var(--muted); font-size: 0.85rem; }
+
+/* Hourly forecast */
+
+.hourly-grid {
+    display: grid;
+    grid-auto-columns: minmax(105px, 1fr);
+    grid-auto-flow: column;
+    gap: 11px;
+    overflow-x: auto;
+    padding: 3px 2px 13px;
+    scrollbar-width: thin;
+    scrollbar-color: var(--accent) transparent;
+}
+
+.hourly-card {
+    min-width: 0;
+    padding: 15px 10px;
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    background: var(--surface-light);
+    text-align: center;
+    transition: transform 0.2s ease, border-color 0.2s ease;
+}
+
+.hourly-card:hover {
+    transform: translateY(-3px);
+    border-color: color-mix(in srgb, var(--accent) 45%, transparent);
+}
+
+.hourly-time {
+    margin: 0;
+    color: var(--muted);
+    font-size: 0.78rem;
+    font-weight: 650;
+}
+
+.hourly-icon {
+    display: block;
+    width: 58px;
+    height: 58px;
+    margin: 8px auto;
+    object-fit: contain;
+}
+
+.hourly-temperature {
+    margin: 0;
+    font-size: 1.15rem;
+    font-weight: 800;
+}
+
+.hourly-condition {
+    min-height: 34px;
+    margin: 5px 0 0;
+    color: var(--muted);
+    font-size: 0.73rem;
+    text-transform: capitalize;
+}
+
+.hourly-rain {
+    margin: 9px 0 0;
+    color: var(--accent);
+    font-size: 0.75rem;
+}
+
+.chart-panel {
+    margin-top: 22px;
+    padding: clamp(18px, 3vw, 26px);
+    border: 1px solid var(--border);
+    border-radius: 20px;
+    background: var(--surface);
+    box-shadow: var(--shadow);
+    backdrop-filter: blur(16px);
+}
+
+.chart-heading {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 16px;
+}
+
+.chart-heading h3 { margin: 0; font-size: 1.08rem; }
+
+.chart-heading p {
+    margin: 5px 0 0;
+    color: var(--muted);
+    font-size: 0.83rem;
+}
+
+.chart-unit-label {
+    padding: 5px 10px;
+    border: 1px solid var(--border);
+    border-radius: 9px;
+    color: var(--accent);
+    font-size: 0.83rem;
+    font-weight: 750;
+}
+
+.temperature-chart {
+    width: 100%;
+    min-height: 210px;
+    margin-top: 12px;
+}
+
+.temperature-chart svg {
+    display: block;
+    width: 100%;
+    height: auto;
+    overflow: visible;
+}
+
+.chart-footnote {
+    margin: 7px 0 0;
+    color: var(--muted);
+    font-size: 0.76rem;
+}
+
+/* Five-day forecast */
 
 .forecast-grid {
     display: grid;
@@ -506,6 +619,8 @@ button:disabled { cursor: not-allowed; opacity: 0.6; }
     border: 1px solid rgba(255, 142, 155, 0.25);
     color: var(--danger);
 }
+
+/* Loading, errors, footer */
 
 .status-message {
     display: flex;
@@ -619,19 +734,14 @@ body.theme-night {
         linear-gradient(145deg, #171e39 0%, #10192e 55%, #090f1d 100%);
 }
 
-/* Subtle theme-specific ambience */
-
-body.theme-sunny .hero h1 span {
-    text-shadow: 0 0 28px rgba(255, 209, 102, 0.2);
+body.theme-sunny .hero h1 span,
+body.theme-night .hero h1 span {
+    text-shadow: 0 0 28px color-mix(in srgb, var(--accent) 20%, transparent);
 }
 
 body.theme-rainy .glass-card,
 body.theme-stormy .glass-card {
     box-shadow: 0 20px 60px rgba(0, 0, 0, 0.28);
-}
-
-body.theme-night .hero h1 span {
-    text-shadow: 0 0 28px rgba(181, 199, 255, 0.2);
 }
 
 @keyframes spin { to { transform: rotate(360deg); } }
@@ -650,6 +760,7 @@ body.theme-night .hero h1 span {
     .insights-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
     .forecast-grid { grid-template-columns: repeat(3, minmax(0, 1fr)); }
     .saved-cities-section { grid-template-columns: 1fr; }
+    .hourly-grid { grid-auto-columns: 108px; }
 }
 
 @media (max-width: 560px) {
@@ -678,6 +789,9 @@ body.theme-night .hero h1 span {
     .section-heading .section-description { text-align: left; }
     .forecast-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
     .forecast-card:last-child:nth-child(odd) { grid-column: 1 / -1; }
+    .chart-panel { padding: 16px 12px; }
+    .temperature-chart { min-height: 160px; }
+    .chart-heading p { max-width: 260px; }
 }
 
 @media (prefers-reduced-motion: reduce) {
