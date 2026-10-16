@@ -1,0 +1,602 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="theme-color" content="#101827">
+    <meta name="description" content="Explore sunrise, sunset and daylight duration with ClimateX.">
+    <title>Sunrise & Sunset | ClimateX</title>
+
+    <style>
+        :root {
+            --accent: #ffd166;
+            --text: #f4f7fb;
+            --muted: #a7b3c5;
+            --border: rgba(255, 255, 255, 0.12);
+            --surface: rgba(25, 38, 58, 0.82);
+        }
+
+        * { box-sizing: border-box; }
+
+        body {
+            margin: 0;
+            min-height: 100vh;
+            color: var(--text);
+            background:
+                radial-gradient(ellipse at 50% 0%, rgba(255, 190, 91, 0.15), transparent 42%),
+                linear-gradient(145deg, #342b3b, #182538 70%, #101827);
+            font-family: Inter, "Segoe UI", Arial, sans-serif;
+            line-height: 1.5;
+        }
+
+        button, input { font: inherit; }
+
+        button:focus-visible, input:focus-visible, a:focus-visible {
+            outline: 2px solid var(--accent);
+            outline-offset: 4px;
+        }
+
+        .container {
+            width: min(900px, calc(100% - 32px));
+            margin: 0 auto;
+        }
+
+        header {
+            min-height: 82px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 15px;
+            border-bottom: 1px solid var(--border);
+        }
+
+        .brand {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            color: var(--text);
+            font-size: 1.35rem;
+            font-weight: 800;
+            text-decoration: none;
+        }
+
+        .brand img {
+            width: 40px;
+            height: 40px;
+            object-fit: contain;
+        }
+
+        .brand-x { color: var(--accent); }
+
+        .back-link {
+            color: var(--accent);
+            font-size: 0.9rem;
+            font-weight: 700;
+            text-decoration: none;
+        }
+
+        .hero {
+            padding: 55px 0 30px;
+            text-align: center;
+        }
+
+        .eyebrow {
+            color: var(--accent);
+            font-size: 0.75rem;
+            font-weight: 800;
+            letter-spacing: 2px;
+        }
+
+        h1 {
+            margin: 12px 0;
+            font-size: clamp(2.3rem, 6vw, 4rem);
+            line-height: 1.1;
+            letter-spacing: -2px;
+        }
+
+        h1 span { color: var(--accent); }
+
+        .intro {
+            max-width: 580px;
+            margin: 0 auto;
+            color: var(--muted);
+        }
+
+        .search-panel {
+            margin: 28px auto;
+            padding: 18px;
+            border: 1px solid var(--border);
+            border-radius: 20px;
+            background: var(--surface);
+            backdrop-filter: blur(15px);
+        }
+
+        form {
+            display: flex;
+            gap: 10px;
+        }
+
+        input {
+            width: 100%;
+            min-width: 0;
+            padding: 14px;
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            color: var(--text);
+            background: rgba(255, 255, 255, 0.06);
+        }
+
+        input::placeholder { color: var(--muted); }
+
+        .search-button {
+            flex-shrink: 0;
+            padding: 0 22px;
+            border: 0;
+            border-radius: 12px;
+            color: #171b24;
+            background: var(--accent);
+            font-weight: 800;
+            cursor: pointer;
+        }
+
+        .search-button:disabled { opacity: 0.6; cursor: wait; }
+
+        .status {
+            margin: 16px 0 0;
+            color: var(--muted);
+            text-align: center;
+        }
+
+        .error {
+            padding: 12px;
+            border: 1px solid rgba(255, 142, 155, 0.3);
+            border-radius: 12px;
+            color: #ff9eaa;
+            background: rgba(255, 80, 100, 0.07);
+            text-align: center;
+        }
+
+        .results { padding-bottom: 36px; }
+
+        .location-heading {
+            margin: 24px 0 16px;
+            text-align: center;
+        }
+
+        .location-heading h2 {
+            margin: 0;
+            font-size: 1.8rem;
+        }
+
+        .location-heading p {
+            margin: 5px 0;
+            color: var(--muted);
+        }
+
+        .sun-grid {
+            display: grid;
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+            gap: 16px;
+        }
+
+        .sun-card {
+            position: relative;
+            overflow: hidden;
+            min-height: 235px;
+            padding: 24px;
+            border: 1px solid var(--border);
+            border-radius: 22px;
+            background: var(--surface);
+            box-shadow: 0 20px 50px rgba(0, 0, 0, 0.18);
+            animation: appear 0.5s ease both;
+        }
+
+        .sun-card.sunset { animation-delay: 0.1s; }
+
+        .sun-card::after {
+            position: absolute;
+            right: -35px;
+            bottom: -65px;
+            width: 180px;
+            height: 180px;
+            border-radius: 50%;
+            background: radial-gradient(circle, rgba(255, 209, 102, 0.14), transparent 70%);
+            content: "";
+            pointer-events: none;
+        }
+
+        .sun-icon {
+            display: grid;
+            width: 68px;
+            height: 68px;
+            place-items: center;
+            border: 1px solid rgba(255, 209, 102, 0.25);
+            border-radius: 20px;
+            background: rgba(255, 209, 102, 0.08);
+            font-size: 2.4rem;
+        }
+
+        .sun-card h3 {
+            margin: 22px 0 4px;
+            color: var(--muted);
+            font-size: 0.95rem;
+            font-weight: 650;
+        }
+
+        .sun-time {
+            margin: 0;
+            font-size: clamp(2rem, 5vw, 3rem);
+            font-weight: 750;
+            letter-spacing: -1px;
+        }
+
+        .sun-subtitle {
+            margin: 8px 0 0;
+            color: var(--muted);
+            font-size: 0.84rem;
+        }
+
+        .daylight-card {
+            margin-top: 16px;
+            padding: 25px;
+            border: 1px solid var(--border);
+            border-radius: 22px;
+            background: var(--surface);
+        }
+
+        .daylight-top {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 15px;
+        }
+
+        .daylight-top h3 {
+            margin: 0;
+            font-size: 1rem;
+        }
+
+        .daylight-value {
+            margin: 5px 0;
+            color: var(--accent);
+            font-size: clamp(2rem, 5vw, 3rem);
+            font-weight: 800;
+        }
+
+        .daylight-copy {
+            margin: 5px 0 18px;
+            color: var(--muted);
+            font-size: 0.88rem;
+        }
+
+        .daylight-track {
+            height: 12px;
+            overflow: hidden;
+            border-radius: 999px;
+            background: rgba(255, 255, 255, 0.09);
+        }
+
+        .daylight-progress {
+            width: 0;
+            height: 100%;
+            border-radius: inherit;
+            background: linear-gradient(90deg, #f8a85b, #ffd166, #ffdc86);
+            transition: width 0.8s ease;
+        }
+
+        .daylight-labels {
+            display: flex;
+            justify-content: space-between;
+            gap: 10px;
+            margin-top: 9px;
+            color: var(--muted);
+            font-size: 0.78rem;
+        }
+
+        .note {
+            margin: 18px 0 0;
+            color: var(--muted);
+            font-size: 0.8rem;
+            text-align: center;
+        }
+
+        footer {
+            padding: 24px 0;
+            border-top: 1px solid var(--border);
+            color: var(--muted);
+            font-size: 0.82rem;
+            text-align: center;
+        }
+
+        footer p { margin: 0; }
+
+        [hidden] { display: none !important; }
+
+        @keyframes appear {
+            from { opacity: 0; transform: translateY(12px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        @media (max-width: 540px) {
+            .container { width: calc(100% - 24px); }
+            header { min-height: 72px; }
+            .brand { font-size: 1.15rem; }
+            .brand img { width: 34px; height: 34px; }
+            .back-link { font-size: 0.8rem; }
+            .hero { padding-top: 42px; }
+            form { flex-direction: column; }
+            .search-button { min-height: 46px; }
+            .sun-grid { grid-template-columns: 1fr; }
+            .sun-card { min-height: 205px; }
+            .daylight-card { padding: 19px; }
+        }
+
+        @media (prefers-reduced-motion: reduce) {
+            *, *::before, *::after {
+                animation-duration: 0.01ms !important;
+                animation-iteration-count: 1 !important;
+                transition-duration: 0.01ms !important;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <a href="index.html" class="brand">
+                <img src="image/logo.png" alt="ClimateX logo">
+                <span>Climate<span class="brand-x">X</span></span>
+            </a>
+            <a href="index.html" class="back-link">← Weather dashboard</a>
+        </header>
+
+        <main>
+            <section class="hero">
+                <p class="eyebrow">FOLLOW THE SUN</p>
+                <h1>Chase the <span>sunrise.</span><br>Enjoy the sunset.</h1>
+                <p class="intro">
+                    Discover when the sun rises, when it sets, and how much daylight your city gets.
+                </p>
+            </section>
+
+            <section class="search-panel">
+                <form id="sunForm">
+                    <label for="cityInput" hidden>City name</label>
+                    <input
+                        id="cityInput"
+                        type="text"
+                        placeholder="Enter a city, e.g. Ranchi"
+                        maxlength="80"
+                        autocomplete="off"
+                        required
+                    >
+                    <button id="searchButton" class="search-button" type="submit">
+                        Find Sun Times
+                    </button>
+                </form>
+                <p id="statusMessage" class="status" role="status" aria-live="polite">
+                    Search for a city to see its sun times.
+                </p>
+            </section>
+
+            <section id="results" class="results" hidden>
+                <div class="location-heading">
+                    <h2 id="locationName"></h2>
+                    <p id="localDate"></p>
+                </div>
+
+                <div class="sun-grid">
+                    <article class="sun-card">
+                        <div class="sun-icon" aria-hidden="true">🌅</div>
+                        <h3>Sunrise</h3>
+                        <p id="sunriseTime" class="sun-time">--:--</p>
+                        <p class="sun-subtitle">The start of daylight</p>
+                    </article>
+
+                    <article class="sun-card sunset">
+                        <div class="sun-icon" aria-hidden="true">🌇</div>
+                        <h3>Sunset</h3>
+                        <p id="sunsetTime" class="sun-time">--:--</p>
+                        <p class="sun-subtitle">The end of daylight</p>
+                    </article>
+                </div>
+
+                <article class="daylight-card">
+                    <div class="daylight-top">
+                        <h3>Today's daylight</h3>
+                        <span aria-hidden="true">☀️</span>
+                    </div>
+                    <p id="daylightDuration" class="daylight-value">--</p>
+                    <p id="daylightDescription" class="daylight-copy">
+                        Total time between sunrise and sunset.
+                    </p>
+                    <div
+                        class="daylight-track"
+                        role="progressbar"
+                        aria-label="Daylight as a proportion of 24 hours"
+                        aria-valuemin="0"
+                        aria-valuemax="100"
+                        aria-valuenow="0"
+                    >
+                        <div id="daylightProgress" class="daylight-progress"></div>
+                    </div>
+                    <div class="daylight-labels">
+                        <span>00:00</span>
+                        <span>24:00</span>
+                    </div>
+                </article>
+
+                <p class="note">
+                    Times are displayed in the selected city's local time zone.
+                    Daylight duration is calculated from the sunrise and sunset values returned by OpenWeather.
+                </p>
+            </section>
+        </main>
+
+        <footer>
+            <p>ClimateX · Powered by OpenWeather.</p>
+        </footer>
+    </div>
+
+    <script src="config.js"></script>
+    <script>
+        const API_URL = "https://api.openweathermap.org/data/2.5/weather";
+
+        const form = document.getElementById("sunForm");
+        const cityInput = document.getElementById("cityInput");
+        const searchButton = document.getElementById("searchButton");
+        const statusMessage = document.getElementById("statusMessage");
+        const results = document.getElementById("results");
+
+        const locationName = document.getElementById("locationName");
+        const localDate = document.getElementById("localDate");
+        const sunriseTime = document.getElementById("sunriseTime");
+        const sunsetTime = document.getElementById("sunsetTime");
+        const daylightDuration = document.getElementById("daylightDuration");
+        const daylightDescription = document.getElementById("daylightDescription");
+        const daylightProgress = document.getElementById("daylightProgress");
+        const daylightTrack = document.querySelector(".daylight-track");
+
+        let requestId = 0;
+
+        function setStatus(message, isError = false) {
+            statusMessage.textContent = message;
+            statusMessage.className = isError ? "status error" : "status";
+        }
+
+        function formatCityTime(unixSeconds, timezoneOffset) {
+            const cityDate = new Date((unixSeconds + timezoneOffset) * 1000);
+
+            return cityDate.toLocaleTimeString("en-GB", {
+                hour: "2-digit",
+                minute: "2-digit",
+                hour12: true,
+                timeZone: "UTC"
+            });
+        }
+
+        function formatCityDate(unixSeconds, timezoneOffset) {
+            const cityDate = new Date((unixSeconds + timezoneOffset) * 1000);
+
+            return cityDate.toLocaleDateString("en-GB", {
+                weekday: "long",
+                day: "numeric",
+                month: "long",
+                year: "numeric",
+                timeZone: "UTC"
+            });
+        }
+
+        function formatDuration(totalSeconds) {
+            const totalMinutes = Math.floor(totalSeconds / 60);
+            const hours = Math.floor(totalMinutes / 60);
+            const minutes = totalMinutes % 60;
+
+            return `${hours}h ${minutes}m`;
+        }
+
+        async function loadSunTimes(city) {
+            const currentRequest = ++requestId;
+
+            if (typeof API_KEY !== "string" || !API_KEY.trim()) {
+                setStatus("API key not found. Check your existing config.js file.", true);
+                return;
+            }
+
+            searchButton.disabled = true;
+            searchButton.textContent = "Loading...";
+            results.hidden = true;
+            setStatus("Finding sunrise and sunset times...");
+
+            try {
+                const url = `${API_URL}?q=${encodeURIComponent(city)}&appid=${API_KEY}&units=metric`;
+                const response = await fetch(url);
+                const data = await response.json();
+
+                if (currentRequest !== requestId) {
+                    return;
+                }
+
+                if (!response.ok) {
+                    if (response.status === 404) {
+                        throw new Error("City not found. Check the spelling and try again.");
+                    }
+
+                    if (response.status === 401) {
+                        throw new Error("The API key was rejected. Check config.js.");
+                    }
+
+                    if (response.status === 429) {
+                        throw new Error("Too many requests. Please wait and try again.");
+                    }
+
+                    throw new Error(data.message || "Unable to retrieve weather data.");
+                }
+
+                const sunrise = data.sys?.sunrise;
+                const sunset = data.sys?.sunset;
+                const timezoneOffset = data.timezone || 0;
+
+                if (
+                    !Number.isFinite(sunrise) ||
+                    !Number.isFinite(sunset) ||
+                    sunset < sunrise
+                ) {
+                    throw new Error("Sunrise and sunset data are unavailable for this location.");
+                }
+
+                const durationSeconds = sunset - sunrise;
+                const durationHours = durationSeconds / 3600;
+                const daylightPercentage = Math.min(
+                    100,
+                    Math.max(0, (durationSeconds / 86400) * 100)
+                );
+
+                locationName.textContent = `${data.name}${data.sys?.country ? ", " + data.sys.country : ""}`;
+                localDate.textContent = formatCityDate(data.dt, timezoneOffset);
+
+                sunriseTime.textContent = formatCityTime(sunrise, timezoneOffset);
+                sunsetTime.textContent = formatCityTime(sunset, timezoneOffset);
+
+                daylightDuration.textContent = formatDuration(durationSeconds);
+                daylightDescription.textContent =
+                    `Approximately ${durationHours.toFixed(2)} hours of daylight today.`;
+
+                daylightProgress.style.width = `${daylightPercentage}%`;
+                daylightTrack.setAttribute("aria-valuenow", String(Math.round(daylightPercentage)));
+
+                results.hidden = false;
+                setStatus(`Sun times loaded for ${data.name}.`);
+            } catch (error) {
+                if (currentRequest !== requestId) {
+                    return;
+                }
+
+                setStatus(
+                    error.message || "Unable to load sun times. Please try again.",
+                    true
+                );
+            } finally {
+                if (currentRequest === requestId) {
+                    searchButton.disabled = false;
+                    searchButton.textContent = "Find Sun Times";
+                }
+            }
+        }
+
+        form.addEventListener("submit", event => {
+            event.preventDefault();
+
+            const city = cityInput.value.trim();
+
+            if (!city) {
+                setStatus("Please enter a city name.", true);
+                cityInput.focus();
+                return;
+            }
+
+            loadSunTimes(city);
+        });
+    </script>
+</body>
+</html>
