@@ -11,11 +11,22 @@
 <body>
     <div class="page-shell">
         <header class="site-header">
-            <a class="brand" href="#" aria-label="ClimateX home">
+            <a class="brand" href="index.html" aria-label="ClimateX home">
                 <img src="image/logo.png" alt="ClimateX logo" class="brand-logo">
                 <span>Climate<span class="brand-accent">X</span></span>
             </a>
+
             <p class="header-tagline">Your world, your weather.</p>
+
+            <a
+                href="sun-times.html"
+                class="location-btn"
+                style="margin-top: 0; text-decoration: none;"
+                aria-label="Explore sunrise and sunset times"
+            >
+                <span aria-hidden="true">☀</span>
+                <span>Sunrise &amp; Sunset ↗</span>
+            </a>
         </header>
 
         <main>
@@ -46,7 +57,9 @@
                     <span id="locationBtnText">Use My Location</span>
                 </button>
 
-                <p class="search-hint">Search any city or allow location access for local weather.</p>
+                <p class="search-hint">
+                    Search any city or allow location access for local weather.
+                </p>
             </section>
 
             <section id="savedCitiesSection" class="saved-cities-section" aria-label="Saved cities">
@@ -87,11 +100,24 @@
                     </div>
 
                     <div class="weather-actions">
-                        <button type="button" id="favouriteBtn" class="favourite-btn" aria-pressed="false" title="Add to favourites">
+                        <button
+                            type="button"
+                            id="favouriteBtn"
+                            class="favourite-btn"
+                            aria-pressed="false"
+                            title="Add to favourites"
+                        >
                             <span id="favouriteIcon" aria-hidden="true">☆</span>
                             <span id="favouriteBtnText">Add favourite</span>
                         </button>
-                        <button type="button" id="refreshBtn" class="icon-btn" aria-label="Refresh weather" title="Refresh weather">↻</button>
+
+                        <button
+                            type="button"
+                            id="refreshBtn"
+                            class="icon-btn"
+                            aria-label="Refresh weather"
+                            title="Refresh weather"
+                        >↻</button>
                     </div>
                 </div>
 
@@ -100,12 +126,15 @@
                         <img id="weatherIcon" src="" alt="" class="current-weather-icon">
                         <p id="condition" class="condition-text">Weather condition</p>
                     </div>
+
                     <div class="temperature-block">
                         <div class="temperature-line">
                             <span id="temperature">--</span>
                             <span id="temperatureUnit" class="temperature-symbol">°C</span>
                         </div>
+
                         <p class="muted-text">Feels like <span id="feelsLike">--</span></p>
+
                         <div class="unit-toggle" aria-label="Temperature unit">
                             <button type="button" id="celsiusBtn" class="unit-btn active" aria-pressed="true">°C</button>
                             <button type="button" id="fahrenheitBtn" class="unit-btn" aria-pressed="false">°F</button>
@@ -121,6 +150,7 @@
                             <p id="humidity" class="detail-value">--%</p>
                         </div>
                     </div>
+
                     <div class="detail-item">
                         <span class="detail-icon" aria-hidden="true">🌬️</span>
                         <div>
@@ -162,8 +192,17 @@
                         </div>
                         <span id="chartUnitLabel" class="chart-unit-label">°C</span>
                     </div>
-                    <div id="temperatureChart" class="temperature-chart" role="img" aria-label="Hourly temperature trend chart"></div>
-                    <p class="chart-footnote">Forecast estimates are shown at the intervals supplied by OpenWeather.</p>
+
+                    <div
+                        id="temperatureChart"
+                        class="temperature-chart"
+                        role="img"
+                        aria-label="Hourly temperature trend chart"
+                    ></div>
+
+                    <p class="chart-footnote">
+                        Forecast estimates are shown at the intervals supplied by OpenWeather.
+                    </p>
                 </div>
             </section>
 
@@ -176,10 +215,16 @@
                     <p id="forecastLocation" class="section-description"></p>
                 </div>
 
-                <div id="forecastLoading" class="forecast-status" hidden>Loading forecast...</div>
+                <div id="forecastLoading" class="forecast-status" hidden>
+                    Loading forecast...
+                </div>
+
                 <div id="forecastError" class="forecast-error" role="status" hidden></div>
                 <div id="forecastGrid" class="forecast-grid"></div>
-                <p id="forecastNote" class="forecast-note">Forecast temperatures are estimates from available forecast intervals.</p>
+
+                <p id="forecastNote" class="forecast-note">
+                    Forecast temperatures are estimates from available forecast intervals.
+                </p>
             </section>
 
             <section id="emptyState" class="empty-state" aria-live="polite">
