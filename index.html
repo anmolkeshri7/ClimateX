@@ -4,179 +4,142 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="theme-color" content="#101827">
-    <meta name="description" content="ClimateX provides current weather, five-day forecasts, and personalized weather insights.">
-    <title>ClimateX | Weather Intelligence</title>
+    <meta name="description" content="ClimateX gives you current weather, a five-day forecast, and helpful weather insights.">
+    <title>ClimateX | Weather Forecast</title>
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
-    <div class="page-overlay"></div>
+    <div class="page-shell">
+        <header class="site-header">
+            <a class="brand" href="#" aria-label="ClimateX home">
+                <img src="image/logo.png" alt="ClimateX logo" class="brand-logo">
+                <span>Climate<span class="brand-accent">X</span></span>
+            </a>
+            <p class="header-tagline">Your world, your weather.</p>
+        </header>
 
-    <header class="header">
-        <a href="#" class="brand" aria-label="ClimateX home">
-            <img src="image/logo.png" alt="ClimateX logo" class="logo">
-            <div class="brand-text">
-                <h2>ClimateX</h2>
-                <p>Weather Intelligence</p>
-            </div>
-        </a>
+        <main>
+            <section class="hero">
+                <p class="eyebrow">WEATHER, MADE SIMPLE</p>
+                <h1>Understand the sky.<br><span>Plan your day.</span></h1>
+                <p class="hero-description">
+                    Get real-time weather, a five-day forecast, and insights for wherever life takes you.
+                </p>
+            </section>
 
-        <div class="header-label">
-            <span class="status-dot"></span>
-            Live Weather
-        </div>
-    </header>
+            <section class="search-section" aria-label="Find weather">
+                <form id="weatherForm" class="search-form">
+                    <label class="visually-hidden" for="cityInput">Enter a city name</label>
+                    <span class="search-icon" aria-hidden="true">⌕</span>
+                    <input
+                        type="text"
+                        id="cityInput"
+                        placeholder="Search a city, e.g. Ranchi"
+                        autocomplete="off"
+                        maxlength="80"
+                    >
+                    <button type="submit" id="searchBtn" class="primary-btn">Search</button>
+                </form>
 
-    <main class="main-content">
-        <section class="hero">
-            <p class="eyebrow">YOUR WORLD, YOUR WEATHER</p>
-            <h1>Understand the <span>Atmosphere.</span></h1>
-            <p class="hero-description">
-                Explore current conditions, plan for the next five days,
-                and get useful insights for your day.
-            </p>
-        </section>
-
-        <section class="search-section" aria-label="Search for a city">
-            <form id="weatherForm" class="search-form">
-                <label for="cityInput" class="sr-only">Enter city name</label>
-                <span class="search-icon" aria-hidden="true">⌕</span>
-                <input
-                    type="text"
-                    id="cityInput"
-                    placeholder="Enter a city, e.g. Ranchi"
-                    autocomplete="off"
-                    maxlength="100"
-                    required
-                >
-                <button type="submit" id="searchBtn">
-                    Search <span aria-hidden="true">→</span>
+                <button type="button" id="locationBtn" class="location-btn">
+                    <span aria-hidden="true">⌖</span>
+                    <span id="locationBtnText">Use My Location</span>
                 </button>
-            </form>
-            <p class="search-hint">Try Ranchi, Delhi, Mumbai, London or Tokyo</p>
-        </section>
 
-        <div id="loading" class="loading" role="status" aria-live="polite" hidden>
-            <div class="spinner"></div>
-            <p>Gathering weather intelligence...</p>
-        </div>
+                <p class="search-hint">Search any city or allow location access for local weather.</p>
+            </section>
 
-        <div id="errorMessage" class="error-message" role="alert" hidden></div>
-
-        <section id="weatherCard" class="weather-card" aria-label="Current weather" hidden>
-            <div class="weather-card-header">
-                <div>
-                    <p class="card-label">CURRENT CONDITIONS</p>
-                    <h2 id="cityName">City</h2>
-                    <p id="countryName" class="country-name"></p>
-                    <p id="currentDateTime" class="current-date-time"></p>
-                </div>
-                <div class="weather-icon-container">
-                    <img id="weatherIcon" src="" alt="" class="weather-icon">
-                </div>
+            <div id="loading" class="status-message" role="status" aria-live="polite" hidden>
+                <span class="spinner" aria-hidden="true"></span>
+                <span>Getting your weather...</span>
             </div>
 
-            <div class="temperature-section">
-                <div class="temperature-heading">
-                    <span class="temperature-caption">Current temperature</span>
-                    <div class="unit-toggle" role="group" aria-label="Temperature unit">
-                        <button type="button" id="celsiusBtn" class="unit-btn active" aria-pressed="true">°C</button>
-                        <button type="button" id="fahrenheitBtn" class="unit-btn" aria-pressed="false">°F</button>
-                    </div>
-                </div>
+            <div id="errorMessage" class="error-message" role="alert" hidden></div>
 
-                <div class="temperature-value">
-                    <span id="temperature">--</span>
-                    <span class="degree" id="temperatureUnit">°C</span>
-                </div>
-                <p id="condition" class="weather-condition">Weather condition</p>
-                <p class="temperature-caption">Current conditions</p>
-            </div>
-
-            <div class="weather-details">
-                <article class="detail-item">
-                    <div class="detail-icon" aria-hidden="true">💧</div>
+            <section id="weatherCard" class="weather-card glass-card" aria-label="Current weather" hidden>
+                <div class="weather-card-top">
                     <div>
-                        <p class="detail-label">Humidity</p>
-                        <p id="humidity" class="detail-value">--%</p>
+                        <p class="section-kicker">CURRENT WEATHER</p>
+                        <h2 id="cityName">City</h2>
+                        <p id="countryName" class="muted-text"></p>
+                        <p id="currentDateTime" class="muted-text"></p>
                     </div>
-                </article>
-
-                <article class="detail-item">
-                    <div class="detail-icon" aria-hidden="true">🌡️</div>
-                    <div>
-                        <p class="detail-label">Feels Like</p>
-                        <p id="feelsLike" class="detail-value">--°C</p>
-                    </div>
-                </article>
-
-                <article class="detail-item">
-                    <div class="detail-icon" aria-hidden="true">💨</div>
-                    <div>
-                        <p class="detail-label">Wind Speed</p>
-                        <p id="wind" class="detail-value">-- m/s</p>
-                    </div>
-                </article>
-            </div>
-
-            <button type="button" id="refreshBtn" class="refresh-btn">
-                <span aria-hidden="true">↻</span> Refresh Weather
-            </button>
-        </section>
-
-        <!-- Weather insights -->
-        <section id="insightsSection" class="insights-section" aria-label="Weather insights" hidden>
-            <div class="section-heading">
-                <div>
-                    <p class="eyebrow">SMART RECOMMENDATIONS</p>
-                    <h2>Weather Insights</h2>
+                    <button type="button" id="refreshBtn" class="icon-btn" aria-label="Refresh weather" title="Refresh weather">↻</button>
                 </div>
-            </div>
 
-            <p class="insights-intro">
-                Helpful suggestions based on the weather conditions.
-            </p>
-
-            <div id="insightsGrid" class="insights-grid"></div>
-
-            <p class="insights-disclaimer">
-                Suggestions are general guidance based on available weather data.
-            </p>
-        </section>
-
-        <!-- Five-day forecast -->
-        <section id="forecastSection" class="forecast-section" aria-label="Five-day forecast" hidden>
-            <div class="section-heading">
-                <div>
-                    <p class="eyebrow">PLAN AHEAD</p>
-                    <h2>5-Day Forecast</h2>
+                <div class="current-weather-main">
+                    <div class="weather-visual">
+                        <img id="weatherIcon" src="" alt="" class="current-weather-icon">
+                        <p id="condition" class="condition-text">Weather condition</p>
+                    </div>
+                    <div class="temperature-block">
+                        <div class="temperature-line">
+                            <span id="temperature">--</span>
+                            <span id="temperatureUnit" class="temperature-symbol">°C</span>
+                        </div>
+                        <p class="muted-text">Feels like <span id="feelsLike">--</span></p>
+                        <div class="unit-toggle" aria-label="Temperature unit">
+                            <button type="button" id="celsiusBtn" class="unit-btn active" aria-pressed="true">°C</button>
+                            <button type="button" id="fahrenheitBtn" class="unit-btn" aria-pressed="false">°F</button>
+                        </div>
+                    </div>
                 </div>
-                <p class="forecast-location" id="forecastLocation"></p>
-            </div>
 
-            <div id="forecastLoading" class="forecast-loading" hidden>
-                <div class="spinner"></div>
-                <p>Loading forecast...</p>
-            </div>
+                <div class="weather-details">
+                    <div class="detail-item">
+                        <span class="detail-icon" aria-hidden="true">💧</span>
+                        <div>
+                            <p class="detail-label">Humidity</p>
+                            <p id="humidity" class="detail-value">--%</p>
+                        </div>
+                    </div>
+                    <div class="detail-item">
+                        <span class="detail-icon" aria-hidden="true">🌬️</span>
+                        <div>
+                            <p class="detail-label">Wind speed</p>
+                            <p id="wind" class="detail-value">-- m/s</p>
+                        </div>
+                    </div>
+                </div>
+            </section>
 
-            <div id="forecastError" class="forecast-error" role="status" hidden></div>
-            <div id="forecastGrid" class="forecast-grid"></div>
+            <section id="insightsSection" class="content-section" hidden>
+                <div class="section-heading">
+                    <div>
+                        <p class="section-kicker">SMART WEATHER</p>
+                        <h2>Weather Insights</h2>
+                    </div>
+                    <p class="section-description">A little context for your day.</p>
+                </div>
+                <div id="insightsGrid" class="insights-grid"></div>
+            </section>
 
-            <p id="forecastNote" class="forecast-note">
-                Daily highs and lows are estimated from three-hour forecast intervals.
-            </p>
-        </section>
+            <section id="forecastSection" class="content-section" hidden>
+                <div class="section-heading">
+                    <div>
+                        <p class="section-kicker">PLAN AHEAD</p>
+                        <h2>Five-Day Forecast</h2>
+                    </div>
+                    <p id="forecastLocation" class="section-description"></p>
+                </div>
 
-        <section id="emptyState" class="empty-state">
-            <div class="empty-icon" aria-hidden="true">☁</div>
-            <h2>Your weather journey starts here.</h2>
-            <p>Enter a city above to discover its weather and forecast.</p>
-        </section>
-    </main>
+                <div id="forecastLoading" class="forecast-status" hidden>Loading forecast...</div>
+                <div id="forecastError" class="forecast-error" role="status" hidden></div>
+                <div id="forecastGrid" class="forecast-grid"></div>
+                <p id="forecastNote" class="forecast-note">Forecast temperatures are estimates from available forecast intervals.</p>
+            </section>
 
-    <footer class="footer">
-        <p>© 2026 ClimateX. Made for a brighter tomorrow.</p>
-        <p>Weather data powered by OpenWeatherMap.</p>
-    </footer>
+            <section id="emptyState" class="empty-state" aria-live="polite">
+                <div class="empty-state-icon" aria-hidden="true">☀</div>
+                <h2>Your weather, at a glance</h2>
+                <p>Enter a city above or use your location to get started.</p>
+            </section>
+        </main>
+
+        <footer class="site-footer">
+            <p>Made for curious minds. Powered by OpenWeather.</p>
+        </footer>
+    </div>
 
     <script src="config.js"></script>
     <script src="scripts.js"></script>
