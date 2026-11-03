@@ -1,6 +1,8 @@
 # 🌤️ ClimateX — Weather Forecast App
 
-ClimateX is a responsive weather application built with HTML, CSS, and JavaScript. It provides current weather conditions, hourly forecasts, a five-day forecast, and useful weather insights through the OpenWeatherMap API.
+ClimateX is a responsive weather application that provides current weather conditions, hourly forecasts, a five-day forecast, and useful weather insights through the OpenWeatherMap API.
+
+🌐 **Live Demo:** [ClimateX](https://climate-x.streamlit.app/)
 
 ## ✨ Features
 
@@ -21,29 +23,35 @@ ClimateX is a responsive weather application built with HTML, CSS, and JavaScrip
 - HTML5
 - CSS3
 - JavaScript
+- Python
+- Flask
 - OpenWeatherMap API
 - Fetch API
 - Browser Local Storage
 - Geolocation API
 - SVG for temperature trend visualization
+- Python Requests
+- python-dotenv
 
 ## 📁 Project Structure
 
 ```text
 ClimateX/
-├── image/
+├── images/
 │   ├── logo.png
 │   └── background.png
 ├── index.html
 ├── style.css
 ├── scripts.js
 ├── sun-times.html
-├── config.js
+├── app.py
+├── requirements.txt
+├── .env
 ├── .gitignore
 └── README.md
 ```
 
-**Note:** `config.js` contains your API key and should remain excluded from GitHub.
+**Note:** `.env` contains your private API key and must remain excluded from GitHub.
 
 ## 🚀 Getting Started
 
@@ -54,25 +62,47 @@ git clone YOUR_GITHUB_REPOSITORY_URL
 cd ClimateX
 ```
 
-Replace `YOUR_GITHUB_REPOSITORY_URL` with your actual repository URL.
+Replace `YOUR_GITHUB_REPOSITORY_URL` with your actual GitHub repository URL.
 
-### 2. Configure the API key
+### 2. Install dependencies
 
-Create a local `config.js` file in the project root. Add your OpenWeatherMap API key using the variable name expected by `scripts.js`.
+```bash
+python -m pip install -r requirements.txt
+```
 
-Keep this file private and do not commit it to GitHub.
+### 3. Configure the API key
 
-### 3. Run the application
+Create a `.env` file in the project root:
 
-Open `index.html` using the VS Code Live Server extension.
+```env
+OPENWEATHER_API_KEY=your_api_key_here
+```
 
-Search for a city to view its weather information.
+Get your API key from [OpenWeatherMap](https://openweathermap.org/api).
+
+Keep the `.env` file private and never commit it to GitHub.
+
+### 4. Run the application
+
+Start the Flask backend:
+
+```bash
+python app.py
+```
+
+Open ClimateX in your browser:
+
+```text
+http://127.0.0.1:5000
+```
+
+**Important:** Run the application through Flask instead of VS Code Live Server because the frontend communicates with Flask API endpoints.
 
 ## 🔑 API
 
-ClimateX uses the OpenWeatherMap API for current weather conditions and forecast data.
+ClimateX uses the OpenWeatherMap API to retrieve current weather and forecast information.
 
-Get an API key from: https://openweathermap.org/api
+API requests are handled through the Flask backend.
 
 API availability and usage limits depend on your OpenWeatherMap account.
 
@@ -85,20 +115,23 @@ Add screenshots of the following pages after capturing them locally:
 - Five-day forecast
 - Sunrise and sunset page
 
-You can place screenshots in a `screenshots/` folder and embed them here using relative image paths.
+Place screenshots in a `screenshots/` folder and embed them here using relative image paths.
 
 ## 🔒 Security
 
 - Keep API credentials out of public repositories.
-- Never commit `config.js` if it contains your API key.
+- Never commit `.env` or other files containing API keys.
+- Store API credentials using environment variables.
+- Use the Flask backend to protect API credentials from direct exposure in frontend JavaScript.
 - Restrict API usage where supported.
-- For public production deployment, consider a backend proxy because API keys used directly in browser JavaScript can be exposed.
 
 ## 👨‍💻 Author
 
 **Anmol Keshri**
 
 B.Tech Computer Science Engineering
+
+GitHub: [@anmolkeshri7](https://github.com/anmolkeshri7)
 
 ## 📄 License
 
