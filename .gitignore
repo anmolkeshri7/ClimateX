@@ -1,11 +1,23 @@
-config.js
+
+# Python
+__pycache__/
+*.py[cod]
+*.pyd
+.venv/
+venv/
+env/
+
+# Environment variables and secrets
 .env
 .env.*
 !.env.example
+config.js
 
+# Editors and operating systems
 .vscode/
+.idea/
 .DS_Store
 Thumbs.db
 
-__pycache__/
-*.py[cod]
+# Logs
+*.log

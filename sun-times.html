@@ -438,165 +438,202 @@
         </footer>
     </div>
 
-    <script src="config.js"></script>
+    
     <script>
-        const API_URL = "https://api.openweathermap.org/data/2.5/weather";
+        
+const API_URL = "/api/weather";
 
-        const form = document.getElementById("sunForm");
-        const cityInput = document.getElementById("cityInput");
-        const searchButton = document.getElementById("searchButton");
-        const statusMessage = document.getElementById("statusMessage");
-        const results = document.getElementById("results");
+const form = document.getElementById("sunForm");
+const cityInput = document.getElementById("cityInput");
+const searchButton = document.getElementById("searchButton");
+const statusMessage = document.getElementById("statusMessage");
+const results = document.getElementById("results");
 
-        const locationName = document.getElementById("locationName");
-        const localDate = document.getElementById("localDate");
-        const sunriseTime = document.getElementById("sunriseTime");
-        const sunsetTime = document.getElementById("sunsetTime");
-        const daylightDuration = document.getElementById("daylightDuration");
-        const daylightDescription = document.getElementById("daylightDescription");
-        const daylightProgress = document.getElementById("daylightProgress");
-        const daylightTrack = document.querySelector(".daylight-track");
+const locationName = document.getElementById("locationName");
+const localDate = document.getElementById("localDate");
+const sunriseTime = document.getElementById("sunriseTime");
+const sunsetTime = document.getElementById("sunsetTime");
+const daylightDuration = document.getElementById("daylightDuration");
+const daylightDescription = document.getElementById("daylightDescription");
+const daylightProgress = document.getElementById("daylightProgress");
+const daylightTrack = document.querySelector(".daylight-track");
 
-        let requestId = 0;
+let requestId = 0;
 
-        function setStatus(message, isError = false) {
-            statusMessage.textContent = message;
-            statusMessage.className = isError ? "status error" : "status";
+function setStatus(message, isError = false) {
+    statusMessage.textContent = message;
+    statusMessage.className = isError ? "status error" : "status";
+}
+
+function formatCityTime(unixSeconds, timezoneOffset) {
+    const cityDate = new Date(
+        (unixSeconds + timezoneOffset) * 1000
+    );
+
+    return cityDate.toLocaleTimeString("en-GB", {
+        hour: "2-digit",
+        minute: "2-digit",
+        hour12: true,
+        timeZone: "UTC"
+    });
+}
+
+function formatCityDate(unixSeconds, timezoneOffset) {
+    const cityDate = new Date(
+        (unixSeconds + timezoneOffset) * 1000
+    );
+
+    return cityDate.toLocaleDateString("en-GB", {
+        weekday: "long",
+        day: "numeric",
+        month: "long",
+        year: "numeric",
+        timeZone: "UTC"
+    });
+}
+
+function formatDuration(totalSeconds) {
+    const totalMinutes = Math.floor(totalSeconds / 60);
+    const hours = Math.floor(totalMinutes / 60);
+    const minutes = totalMinutes % 60;
+
+    return `${hours}h ${minutes}m`;
+}
+
+async function loadSunTimes(city) {
+    const currentRequest = ++requestId;
+
+    searchButton.disabled = true;
+    searchButton.textContent = "Loading...";
+    results.hidden = true;
+    setStatus("Finding sunrise and sunset times...");
+
+    try {
+        const url = `${API_URL}?q=${encodeURIComponent(city)}`;
+        const response = await fetch(url);
+        const data = await response.json();
+
+        if (currentRequest !== requestId) {
+            return;
         }
 
-        function formatCityTime(unixSeconds, timezoneOffset) {
-            const cityDate = new Date((unixSeconds + timezoneOffset) * 1000);
-
-            return cityDate.toLocaleTimeString("en-GB", {
-                hour: "2-digit",
-                minute: "2-digit",
-                hour12: true,
-                timeZone: "UTC"
-            });
-        }
-
-        function formatCityDate(unixSeconds, timezoneOffset) {
-            const cityDate = new Date((unixSeconds + timezoneOffset) * 1000);
-
-            return cityDate.toLocaleDateString("en-GB", {
-                weekday: "long",
-                day: "numeric",
-                month: "long",
-                year: "numeric",
-                timeZone: "UTC"
-            });
-        }
-
-        function formatDuration(totalSeconds) {
-            const totalMinutes = Math.floor(totalSeconds / 60);
-            const hours = Math.floor(totalMinutes / 60);
-            const minutes = totalMinutes % 60;
-
-            return `${hours}h ${minutes}m`;
-        }
-
-        async function loadSunTimes(city) {
-            const currentRequest = ++requestId;
-
-            if (typeof API_KEY !== "string" || !API_KEY.trim()) {
-                setStatus("API key not found. Check your existing config.js file.", true);
-                return;
-            }
-
-            searchButton.disabled = true;
-            searchButton.textContent = "Loading...";
-            results.hidden = true;
-            setStatus("Finding sunrise and sunset times...");
-
-            try {
-                const url = `${API_URL}?q=${encodeURIComponent(city)}&appid=${API_KEY}&units=metric`;
-                const response = await fetch(url);
-                const data = await response.json();
-
-                if (currentRequest !== requestId) {
-                    return;
-                }
-
-                if (!response.ok) {
-                    if (response.status === 404) {
-                        throw new Error("City not found. Check the spelling and try again.");
-                    }
-
-                    if (response.status === 401) {
-                        throw new Error("The API key was rejected. Check config.js.");
-                    }
-
-                    if (response.status === 429) {
-                        throw new Error("Too many requests. Please wait and try again.");
-                    }
-
-                    throw new Error(data.message || "Unable to retrieve weather data.");
-                }
-
-                const sunrise = data.sys?.sunrise;
-                const sunset = data.sys?.sunset;
-                const timezoneOffset = data.timezone || 0;
-
-                if (
-                    !Number.isFinite(sunrise) ||
-                    !Number.isFinite(sunset) ||
-                    sunset < sunrise
-                ) {
-                    throw new Error("Sunrise and sunset data are unavailable for this location.");
-                }
-
-                const durationSeconds = sunset - sunrise;
-                const durationHours = durationSeconds / 3600;
-                const daylightPercentage = Math.min(
-                    100,
-                    Math.max(0, (durationSeconds / 86400) * 100)
+        if (!response.ok) {
+            if (response.status === 404) {
+                throw new Error(
+                    "City not found. Check the spelling and try again."
                 );
-
-                locationName.textContent = `${data.name}${data.sys?.country ? ", " + data.sys.country : ""}`;
-                localDate.textContent = formatCityDate(data.dt, timezoneOffset);
-
-                sunriseTime.textContent = formatCityTime(sunrise, timezoneOffset);
-                sunsetTime.textContent = formatCityTime(sunset, timezoneOffset);
-
-                daylightDuration.textContent = formatDuration(durationSeconds);
-                daylightDescription.textContent =
-                    `Approximately ${durationHours.toFixed(2)} hours of daylight today.`;
-
-                daylightProgress.style.width = `${daylightPercentage}%`;
-                daylightTrack.setAttribute("aria-valuenow", String(Math.round(daylightPercentage)));
-
-                results.hidden = false;
-                setStatus(`Sun times loaded for ${data.name}.`);
-            } catch (error) {
-                if (currentRequest !== requestId) {
-                    return;
-                }
-
-                setStatus(
-                    error.message || "Unable to load sun times. Please try again.",
-                    true
-                );
-            } finally {
-                if (currentRequest === requestId) {
-                    searchButton.disabled = false;
-                    searchButton.textContent = "Find Sun Times";
-                }
             }
+
+            if (response.status === 401) {
+                throw new Error(
+                    "The weather service rejected its server API key. Check OPENWEATHER_API_KEY."
+                );
+            }
+
+            if (response.status === 429) {
+                throw new Error(
+                    "Too many requests. Please wait and try again."
+                );
+            }
+
+            if (response.status === 503) {
+                throw new Error(
+                    "The server API key is not configured yet."
+                );
+            }
+
+            throw new Error(
+                data.message || "Unable to retrieve weather data."
+            );
         }
 
-        form.addEventListener("submit", event => {
-            event.preventDefault();
+        const sunrise = data.sys?.sunrise;
+        const sunset = data.sys?.sunset;
+        const timezoneOffset = data.timezone || 0;
 
-            const city = cityInput.value.trim();
+        if (
+            !Number.isFinite(sunrise) ||
+            !Number.isFinite(sunset) ||
+            sunset < sunrise
+        ) {
+            throw new Error(
+                "Sunrise and sunset data are unavailable for this location."
+            );
+        }
 
-            if (!city) {
-                setStatus("Please enter a city name.", true);
-                cityInput.focus();
-                return;
-            }
+        const durationSeconds = sunset - sunrise;
+        const durationHours = durationSeconds / 3600;
 
-            loadSunTimes(city);
-        });
+        const daylightPercentage = Math.min(
+            100,
+            Math.max(0, (durationSeconds / 86400) * 100)
+        );
+
+        locationName.textContent =
+            `${data.name}${data.sys?.country ? ", " + data.sys.country : ""}`;
+
+        localDate.textContent = formatCityDate(
+            data.dt,
+            timezoneOffset
+        );
+
+        sunriseTime.textContent = formatCityTime(
+            sunrise,
+            timezoneOffset
+        );
+
+        sunsetTime.textContent = formatCityTime(
+            sunset,
+            timezoneOffset
+        );
+
+        daylightDuration.textContent = formatDuration(durationSeconds);
+
+        daylightDescription.textContent =
+            `Approximately ${durationHours.toFixed(2)} hours of daylight today.`;
+
+        daylightProgress.style.width = `${daylightPercentage}%`;
+
+        daylightTrack.setAttribute(
+            "aria-valuenow",
+            String(Math.round(daylightPercentage))
+        );
+
+        results.hidden = false;
+        setStatus(`Sun times loaded for ${data.name}.`);
+
+    } catch (error) {
+        if (currentRequest !== requestId) {
+            return;
+        }
+
+        setStatus(
+            error.message || "Unable to load sun times. Please try again.",
+            true
+        );
+
+    } finally {
+        if (currentRequest === requestId) {
+            searchButton.disabled = false;
+            searchButton.textContent = "Find Sun Times";
+        }
+    }
+}
+
+form.addEventListener("submit", event => {
+    event.preventDefault();
+
+    const city = cityInput.value.trim();
+
+    if (!city) {
+        setStatus("Please enter a city name.", true);
+        cityInput.focus();
+        return;
+    }
+
+    loadSunTimes(city);
+});
+
     </script>
 </body>
 </html>
